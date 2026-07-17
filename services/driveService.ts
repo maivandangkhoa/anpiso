@@ -92,6 +92,17 @@ export const driveService = {
     return res.json();
   },
 
+  /** Đổi tên file/folder — dùng đặt lại tên folder theo tóm tắt sau khi có biên bản. */
+  async renameFile(accessToken: string, fileId: string, newName: string): Promise<void> {
+    const res = await fetch(`${DRIVE_API}/files/${fileId}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName }),
+    });
+    if (res.status === 401) throw new Error('TOKEN_EXPIRED');
+    if (!res.ok) throw new Error(`Drive rename error: ${res.status}`);
+  },
+
   /** Tải file audio từ Drive về (dùng cho gỡ băng lại HQ). */
   async downloadFile(accessToken: string, fileId: string): Promise<Blob> {
     const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media`, {

@@ -60,6 +60,7 @@ const App: React.FC = () => {
   const savedMeetingIdRef = useRef<string | null>(null);
   const draftMeetingIdRef = useRef<string | null>(null);
   const pendingDriveLinksRef = useRef<DriveLinks | null>(null);
+  const pendingDriveFolderIdRef = useRef<string | null>(null);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const [isRetranscribing, setIsRetranscribing] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
@@ -218,6 +219,7 @@ const App: React.FC = () => {
       const folder = await driveService.createMeetingFolder(token, userSettings.driveFolderId!, meetingTitle);
 
       const driveLinks: DriveLinks = { folderWebViewLink: folder.webViewLink };
+      pendingDriveFolderIdRef.current = folder.id;
 
       const timestamp = new Date().toISOString().slice(0, 10);
       const audioResult = await driveService.uploadAudioFile(token, folder.id, `Audio_${timestamp}.webm`, audioBlob);
@@ -268,9 +270,14 @@ const App: React.FC = () => {
         savedMeetingIdRef.current = id;
         console.log('Meeting saved to Firestore:', id);
 
-        // Audio đã upload từ lúc bấm dừng — chỉ cần gắn link vào doc
+        // Audio đã upload từ lúc bấm dừng — gắn link vào doc + đổi tên folder theo tóm tắt
         if (pendingDriveLinksRef.current) {
           meetingService.updateDriveLinks(id, pendingDriveLinksRef.current).catch(() => {});
+        }
+        if (pendingDriveFolderIdRef.current && minutes.shortSummary) {
+          getDriveToken()
+            .then(token => driveService.renameFile(token, pendingDriveFolderIdRef.current!, minutes.shortSummary))
+            .catch(() => {});
         }
       }).catch(err => {
         console.error('Failed to save meeting to Firestore:', err);
@@ -396,6 +403,7 @@ const App: React.FC = () => {
     setShowTranscript(false);
     draftMeetingIdRef.current = null;
     pendingDriveLinksRef.current = null;
+    pendingDriveFolderIdRef.current = null;
     setDraftError(null);
     startRecording(audioSourceType);
   };
@@ -403,6 +411,7 @@ const App: React.FC = () => {
   const handleCancel = () => {
     draftMeetingIdRef.current = null;
     pendingDriveLinksRef.current = null;
+    pendingDriveFolderIdRef.current = null;
     setDraftError(null);
     if (isSharing) stopSharing();
     cancelRecording();
@@ -414,6 +423,7 @@ const App: React.FC = () => {
   const handleReset = () => {
     draftMeetingIdRef.current = null;
     pendingDriveLinksRef.current = null;
+    pendingDriveFolderIdRef.current = null;
     setDraftError(null);
     if (isSharing) stopSharing();
     reset();
