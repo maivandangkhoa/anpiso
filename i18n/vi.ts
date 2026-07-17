@@ -111,6 +111,7 @@ const vi = {
   lockedMeeting: 'Cuộc họp đã mã hoá',
   lockedMeetingHint: 'Cần chìa khoá để mở — khôi phục khoá trong menu tài khoản',
   settingsMenu: 'Cài đặt',
+  settingsTabGeneral: 'Chung',
   logout: 'Đăng xuất',
   logoutTitle: 'Đăng xuất tài khoản',
   logoutMessage: 'Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng? Mọi dữ liệu phiên làm việc hiện tại sẽ không còn được lưu trữ.',

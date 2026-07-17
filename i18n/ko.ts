@@ -113,6 +113,7 @@ const ko: TranslationKeys = {
   lockedMeeting: '암호화된 회의',
   lockedMeetingHint: '키가 필요합니다 — 계정 메뉴에서 키를 복원하세요',
   settingsMenu: '설정',
+  settingsTabGeneral: '일반',
   logout: '로그아웃',
   logoutTitle: '로그아웃',
   logoutMessage: '로그아웃하시겠습니까? 현재 세션 데이터가 저장되지 않습니다.',

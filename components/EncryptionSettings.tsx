@@ -127,7 +127,7 @@ const EncryptionSettings: React.FC<Props> = ({ userSettings }) => {
   };
 
   return (
-    <div className="p-4 border-b border-slate-100">
+    <div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">

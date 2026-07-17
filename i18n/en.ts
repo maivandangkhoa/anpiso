@@ -113,6 +113,7 @@ const en: TranslationKeys = {
   lockedMeeting: 'Encrypted meeting',
   lockedMeetingHint: 'Key required — restore your key in the account menu',
   settingsMenu: 'Settings',
+  settingsTabGeneral: 'General',
   logout: 'Log out',
   logoutTitle: 'Log out',
   logoutMessage: 'Are you sure you want to log out? Current session data will not be saved.',

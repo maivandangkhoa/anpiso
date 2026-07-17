@@ -25,6 +25,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
   const [gtKeySaved, setGtKeySaved] = useState(false);
   const [showGtSetup, setShowGtSetup] = useState(false);
   const [showGeminiSetup, setShowGeminiSetup] = useState(false);
+  const [tab, setTab] = useState<'general' | 'keys'>('general');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -129,10 +130,28 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
           </button>
         </div>
 
-        <div className="p-6 space-y-8">
+        {/* Tabs */}
+        <div className="sticky top-[65px] bg-white/95 backdrop-blur px-6 pt-3 pb-0 border-b border-slate-100 z-10 flex gap-1">
+          {([['general', t.settingsTabGeneral], ['keys', 'API Keys']] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`px-4 py-2.5 text-sm font-bold rounded-t-xl border-b-2 transition-colors ${
+                tab === key
+                  ? 'text-indigo-600 border-indigo-500'
+                  : 'text-slate-400 border-transparent hover:text-slate-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
+        <div className="p-6 space-y-5">
+
+          {tab === 'general' && (<>
           {/* Google Drive */}
-          <section>
+          <section className="bg-slate-50/60 border border-slate-100 rounded-2xl p-5">
             <SectionHead
               icon="fab fa-google-drive" iconBg="bg-indigo-50" iconColor="text-indigo-500"
               title={t.googleDrive}
@@ -154,12 +173,14 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
           </section>
 
           {/* Mã hoá đầu-cuối (component sẵn có) */}
-          <section className="-mx-4">
+          <section className="bg-slate-50/60 border border-slate-100 rounded-2xl p-5">
             <EncryptionSettings userSettings={userSettings} />
           </section>
+          </>)}
 
+          {tab === 'keys' && (<>
           {/* Gemini API Keys */}
-          <section>
+          <section className="bg-slate-50/60 border border-slate-100 rounded-2xl p-5">
             <SectionHead
               icon="fas fa-key" iconBg="bg-amber-50" iconColor="text-amber-500"
               title={t.geminiApiKeys}
@@ -194,7 +215,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
                         className={`flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-xl focus:outline-none font-mono ${
                           error
                             ? 'bg-red-50 border border-red-200 focus:border-red-400 focus:ring-1 focus:ring-red-100'
-                            : 'bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-100'
+                            : 'bg-white border border-slate-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-100'
                         }`}
                       />
                       {geminiKeys.length > 1 && (
@@ -212,14 +233,14 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
             <div className="flex gap-2.5 mt-4">
               <button
                 onClick={addKey}
-                className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition-colors border border-slate-200"
+                className="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition-colors border border-slate-200"
               >
                 <i className="fas fa-plus mr-1.5"></i>{t.addKey}
               </button>
               <button
                 onClick={saveKeys}
                 disabled={validKeyCount === 0 && !hasKeys}
-                className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-colors"
+                className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-colors ml-auto"
               >
                 {keySaved ? t.saved : `${t.saveKeys} ${validKeyCount > 0 ? `(${validKeyCount})` : ''}`}
               </button>
@@ -242,7 +263,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
             </button>
 
             {showGeminiSetup && (
-              <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="mt-3 p-4 bg-white rounded-xl border border-slate-100">
                 <ol className="space-y-2 text-xs text-slate-600 list-decimal list-inside leading-relaxed">
                   <li>
                     <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
@@ -258,7 +279,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
           </section>
 
           {/* Google Translate Key */}
-          <section>
+          <section className="bg-slate-50/60 border border-slate-100 rounded-2xl p-5">
             <SectionHead
               icon="fas fa-language" iconBg="bg-emerald-50" iconColor="text-emerald-500"
               title={t.gtKeyTitle}
@@ -286,7 +307,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
                 className={`flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-xl focus:outline-none font-mono ${
                   gtError
                     ? 'bg-red-50 border border-red-200 focus:border-red-400 focus:ring-1 focus:ring-red-100'
-                    : 'bg-slate-50 border border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'
+                    : 'bg-white border border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'
                 }`}
               />
             </div>
@@ -296,7 +317,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
               <button
                 onClick={saveGtKey}
                 disabled={!gtKeyDraft.trim() && !hasGtKey}
-                className="flex-1 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-colors"
+                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-colors ml-auto"
               >
                 {gtKeySaved ? t.saved : t.saveKeys}
               </button>
@@ -319,7 +340,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
             </button>
 
             {showGtSetup && (
-              <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="mt-3 p-4 bg-white rounded-xl border border-slate-100">
                 <ol className="space-y-2 text-xs text-slate-600 list-decimal list-inside leading-relaxed">
                   <li>
                     <a href="https://console.cloud.google.com/apis/library/translate.googleapis.com" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
@@ -338,6 +359,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
               </div>
             )}
           </section>
+          </>)}
         </div>
       </div>
     </div>
