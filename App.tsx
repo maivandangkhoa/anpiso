@@ -115,7 +115,9 @@ const App: React.FC = () => {
   };
 
   const [rpmLimit, setRpmLimit] = useState(15);
-  const [logBarHeight, setLogBarHeight] = useState(32);
+  // Log bar chỉ dành cho debug — ẩn hoàn toàn ở bản production
+  const showLogBar = import.meta.env.DEV;
+  const [logBarHeight, setLogBarHeight] = useState(showLogBar ? 32 : 0);
   const [sttEngine, _setSttEngine] = useState<SttEngine>(
     () => (localStorage.getItem('pref_sttEngine') as SttEngine) || SttEngine.GEMINI
   );
@@ -759,7 +761,7 @@ const App: React.FC = () => {
           <ErrorDisplay errorMessage={errorMessage} onRetry={handleReset} />
         )}
       </div>
-      <LogBar rpmLimit={rpmLimit} onRpmChange={setRpmLimit} isRecording={status === RecordingStatus.RECORDING} onHeightChange={setLogBarHeight} />
+      {showLogBar && <LogBar rpmLimit={rpmLimit} onRpmChange={setRpmLimit} isRecording={status === RecordingStatus.RECORDING} onHeightChange={setLogBarHeight} />}
 
       {/* Popups */}
       <ConfirmDialog 
