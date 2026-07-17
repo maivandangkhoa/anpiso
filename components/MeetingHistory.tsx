@@ -72,7 +72,15 @@ const SwipeableCard: React.FC<{
   const shownParticipants = participantList.slice(0, 3);
   const extraCount = participantList.length - 3;
   const actionCount = m?.actionItems?.length || 0;
-  const title = meeting.locked ? t.lockedMeeting : meeting.draft ? t.draftMeeting : (m?.shortSummary || t.meetingMinutes);
+  // Nháp chưa có biên bản → tiêu đề tạm từ những từ đầu của transcript (không tốn AI)
+  const draftTitle = (() => {
+    const raw = (meeting.transcriptText || '').replace(/\[\d{1,2}:\d{2}\]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!raw) return t.draftMeeting;
+    const words = raw.split(' ').slice(0, 10).join(' ');
+    return words.length < raw.length ? `${words}…` : words;
+  })();
+  const draftDate = meeting.createdAt?.toDate ? meeting.createdAt.toDate().toLocaleString() : '';
+  const title = meeting.locked ? t.lockedMeeting : meeting.draft ? draftTitle : (m?.shortSummary || t.meetingMinutes);
 
   return (
     <div className="relative overflow-hidden rounded-2xl">
@@ -105,7 +113,7 @@ const SwipeableCard: React.FC<{
             {title}
           </p>
           <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-            {meeting.locked ? t.lockedMeetingHint : meeting.draft ? t.draftMeetingHint : (m?.time || '')}
+            {meeting.locked ? t.lockedMeetingHint : meeting.draft ? `${draftDate ? draftDate + ' · ' : ''}${t.draftMeetingHint}` : (m?.time || '')}
           </p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {shownParticipants.map((p: string, i: number) => (
