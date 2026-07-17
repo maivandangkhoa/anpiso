@@ -163,6 +163,17 @@ export const useMeetingRecorder = (
     setStatus(RecordingStatus.COMPLETED);
   };
 
+  /** Build blob audio từ dữ liệu ghim — để App upload Drive khi lưu nháp. */
+  const getPendingAudioBlob = async (): Promise<Blob | null> => {
+    const p = pendingMinutesRef.current;
+    if (!p || audioChunksRef.current.length === 0) return null;
+    const rawBlob = new Blob(audioChunksRef.current, { type: p.blobType });
+    if (p.blobType.includes('webm')) {
+      try { return await fixWebmDuration(rawBlob, p.durationMs); } catch { return rawBlob; }
+    }
+    return rawBlob;
+  };
+
   /** "Thử lại" sau lỗi tóm tắt: không đụng transcript/audio, chỉ gọi lại AI. */
   const retryMinutes = async () => {
     if (!pendingMinutesRef.current) return;
@@ -387,7 +398,7 @@ export const useMeetingRecorder = (
     status, minutes, errorMessage, isProcessingSegment, hqSegments,
     fullTranslatedTranscript, isTranslatingFull, recordedBlob, elapsedTime,
     micMuted, micAvailable, toggleMic,
-    hasPendingMinutes, retryMinutes,
+    hasPendingMinutes, retryMinutes, getPendingAudioBlob,
     startRecording, stopRecording, cancelRecording, reset
   };
 };

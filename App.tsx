@@ -58,6 +58,7 @@ const App: React.FC = () => {
   const [sendTextBody, setSendTextBody] = useState('');
   const savedMeetingIdRef = useRef<string | null>(null);
   const draftMeetingIdRef = useRef<string | null>(null);
+  const audioUploadedForRef = useRef<string | null>(null);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [pastMeetings, setPastMeetings] = useState<any[]>([]);
@@ -166,6 +167,7 @@ const App: React.FC = () => {
     toggleMic,
     hasPendingMinutes,
     retryMinutes,
+    getPendingAudioBlob,
     startRecording,
     stopRecording,
     cancelRecording,
@@ -231,9 +233,17 @@ const App: React.FC = () => {
   useEffect(() => {
     if (status === RecordingStatus.ERROR && hasPendingMinutes && user && !draftMeetingIdRef.current && hqSegments.length > 0) {
       meetingService.saveDraft(user.uid, user.email, hqSegments.join("\n\n---\n\n"), fullTranslatedTranscript)
-        .then(id => {
+        .then(async id => {
           draftMeetingIdRef.current = id;
           console.log('Draft saved to Firestore:', id);
+          // Audio cũng lên Drive ngay cùng bản nháp — đóng tab không mất gì
+          if (userSettings.driveEnabled) {
+            const blob = await getPendingAudioBlob();
+            if (blob) {
+              audioUploadedForRef.current = id;
+              uploadAudioToDrive(id, `${t.draftMeeting} ${new Date().toLocaleDateString()}`, blob);
+            }
+          }
         })
         .catch(err => console.error('Failed to save draft:', err));
     }
@@ -257,8 +267,8 @@ const App: React.FC = () => {
         savedMeetingIdRef.current = id;
         console.log('Meeting saved to Firestore:', id);
 
-        // Upload audio to Drive if enabled
-        if (userSettings.driveEnabled && recordedBlob) {
+        // Upload audio to Drive if enabled (bỏ qua nếu đã upload cùng bản nháp)
+        if (userSettings.driveEnabled && recordedBlob && audioUploadedForRef.current !== id) {
           const title = minutes.shortSummary || 'Meeting';
           uploadAudioToDrive(id, title, recordedBlob);
         }
