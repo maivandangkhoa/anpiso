@@ -144,7 +144,7 @@ const ko: TranslationKeys = {
   captureOnlineDesc: '브라우저에서 Meet, Zoom 녹음',
   meetingLanguageLabel: '회의 언어',
   meetingLanguageDesc: '회의에서 사용하는 언어',
-  translationSection: '번역 (선택)',
+  translationSection: '번역할 언어 (선택)',
   translationNone: '번역 없음',
   translationDesc: '켜면 실시간 이중 언어 기록 제공',
   multilingual: '다국어',

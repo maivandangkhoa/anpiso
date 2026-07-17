@@ -142,7 +142,7 @@ const vi = {
   captureOnlineDesc: 'Thu âm Meet, Zoom... trên trình duyệt',
   meetingLanguageLabel: 'Ngôn ngữ cuộc họp',
   meetingLanguageDesc: 'Ngôn ngữ được nói trong cuộc họp',
-  translationSection: 'Dịch thuật (tuỳ chọn)',
+  translationSection: 'Dịch sang ngôn ngữ (tuỳ chọn)',
   translationNone: 'Không dịch',
   translationDesc: 'Bật để có bản ghi song ngữ trực tiếp',
   multilingual: 'Đa ngôn ngữ',

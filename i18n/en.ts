@@ -144,7 +144,7 @@ const en: TranslationKeys = {
   captureOnlineDesc: 'Capture Meet, Zoom... in the browser',
   meetingLanguageLabel: 'Meeting Language',
   meetingLanguageDesc: 'Language spoken in the meeting',
-  translationSection: 'Translation (Optional)',
+  translationSection: 'Translate to (Optional)',
   translationNone: 'None (Record only)',
   translationDesc: 'Enable to get a live bilingual transcript',
   multilingual: 'Multilingual',
