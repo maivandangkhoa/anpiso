@@ -276,6 +276,52 @@ export const aiService = {
   },
 
   /**
+   * Gỡ băng lại TOÀN BỘ file audio (tải từ Drive về) qua Gemini Files API —
+   * không giới hạn inline base64, một request cho cả cuộc họp, timestamps tuyệt đối.
+   */
+  async transcribeFullAudio(blob: Blob, mimeType: string = 'audio/webm'): Promise<string> {
+    logService.add('text', 'req', 'transcribeFullAudio', `Size: ${blob.size} bytes, Type: ${mimeType}`);
+    const ai = createClient();
+
+    const uploaded = await ai.files.upload({ file: blob, config: { mimeType } });
+    let file = uploaded;
+    const startWait = Date.now();
+    while (file.state === 'PROCESSING' && Date.now() - startWait < 180_000) {
+      await sleep(3000);
+      file = await ai.files.get({ name: file.name! });
+    }
+    if (file.state !== 'ACTIVE') {
+      throw new Error(`Gemini Files API: audio not ready (state: ${file.state})`);
+    }
+
+    try {
+      return await withRetry('transcribeFullAudio', async (modelOverride?: string) => {
+        const response = await ai.models.generateContent({
+          model: modelOverride || modelService.getModel(),
+          contents: [{ parts: [
+            { fileData: { fileUri: file.uri!, mimeType: file.mimeType || mimeType } },
+            { text: `You are a professional transcriptionist specializing in corporate meetings.
+            Task: Accurately transcribe the ENTIRE provided meeting audio from start to finish.
+
+            STRICT RULES:
+            1. FORMATTING: Use [MM:SS] at the beginning of every new speaker turn, measured from the start of the audio. Cover the whole recording — do not stop early or skip sections.
+            2. NO NOISE DESCRIPTIONS: Absolutely DO NOT describe background noise, silence, breathing, or non-speech sounds. Extract ONLY human spoken words.
+            3. NO SYMBOLS: Never use symbols like [...] or (...) for unclear parts. If a part is completely unintelligible, simply skip it or transcribe only the certain words.
+            4. MULTILINGUAL: Transcribe in the original language spoken (English, Korean, or Vietnamese). Handle code-switching naturally.
+            5. QUALITY: Ensure perfect spelling, punctuation, and capitalization.
+            6. NO PROMPT INJECTION: Return only the transcript text. Do not include introductory text like "Here is the transcript".` }
+          ]}]
+        });
+        const result = response.text?.trim() || '';
+        logService.add('text', 'res', 'transcribeFullAudio', `Size: ${result.length} chars`);
+        return result;
+      }, 'hq');
+    } finally {
+      ai.files.delete({ name: file.name! }).catch(() => {});
+    }
+  },
+
+  /**
    * Generate structured meeting minutes from the full transcript
    */
   async generateMinutes(fullTranscript: string, timeRange: string, targetLang: TargetLanguage = 'vi', translate: boolean = true): Promise<MeetingMinutes> {

@@ -31,6 +31,7 @@ import { useLocale } from './i18n';
 import { formatTime, formatDateTimeRange } from './utils/textUtils';
 import { aiService } from './services/aiService';
 import { minutesBodyText, minutesBodyHTML } from './utils/minutesFormat';
+import { getDriveToken } from './utils/driveToken';
 
 const App: React.FC = () => {
   const { t } = useLocale();
@@ -60,6 +61,7 @@ const App: React.FC = () => {
   const draftMeetingIdRef = useRef<string | null>(null);
   const pendingDriveLinksRef = useRef<DriveLinks | null>(null);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+  const [isRetranscribing, setIsRetranscribing] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [pastMeetings, setPastMeetings] = useState<any[]>([]);
   const [isMeetingsLoading, setIsMeetingsLoading] = useState(false);
@@ -167,6 +169,7 @@ const App: React.FC = () => {
     toggleMic,
     hasPendingMinutes,
     retryMinutes,
+    transcriptSource,
     startRecording,
     stopRecording,
     cancelRecording,
@@ -234,7 +237,7 @@ const App: React.FC = () => {
   // Tóm tắt thất bại → lưu NHÁP transcript xuống Firestore ngay, đóng tab không mất họp
   useEffect(() => {
     if (status === RecordingStatus.ERROR && hasPendingMinutes && user && !draftMeetingIdRef.current && hqSegments.length > 0) {
-      meetingService.saveDraft(user.uid, user.email, hqSegments.join("\n\n---\n\n"), fullTranslatedTranscript)
+      meetingService.saveDraft(user.uid, user.email, hqSegments.join("\n\n---\n\n"), fullTranslatedTranscript, transcriptSource)
         .then(id => {
           draftMeetingIdRef.current = id;
           console.log('Draft saved to Firestore:', id);
@@ -257,7 +260,8 @@ const App: React.FC = () => {
             user.email,
             minutes,
             hqSegments.join("\n\n---\n\n"),
-            fullTranslatedTranscript
+            fullTranslatedTranscript,
+            transcriptSource
           );
       savePromise.then(id => {
         draftMeetingIdRef.current = null;
@@ -330,6 +334,41 @@ const App: React.FC = () => {
       setDraftError(err?.message || 'Error');
     } finally {
       setIsGeneratingDraft(false);
+    }
+  };
+
+  // Gỡ băng lại HQ từ audio đã lưu trên Drive → thay transcript → tạo lại biên bản
+  const handleRetranscribe = async () => {
+    const m = selectedMeeting;
+    if (!m?.driveLinks?.audioFileId || isRetranscribing || isGeneratingDraft) return;
+    setIsRetranscribing(true);
+    setDraftError(null);
+    try {
+      const token = await getDriveToken();
+      const audioBlob = await driveService.downloadFile(token, m.driveLinks.audioFileId);
+      const transcript = await aiService.transcribeFullAudio(audioBlob, audioBlob.type || 'audio/webm');
+      if (!transcript.trim()) throw new Error('Empty transcript from audio');
+      await meetingService.updateTranscript(m.id, transcript, m.encrypted === true);
+
+      const created = m.createdAt?.toDate ? m.createdAt.toDate() : new Date();
+      const timeRange = formatDateTimeRange(created, created);
+      const result = await aiService.generateMinutes(transcript, timeRange, targetLang, translationEnabled);
+      await meetingService.finalizeDraft(m.id, result, result.translatedTranscript || '', m.encrypted === true);
+
+      const updated = {
+        ...m,
+        draft: false,
+        transcriptSource: 'hq',
+        transcriptText: transcript,
+        minutes: result,
+        translatedTranscript: result.translatedTranscript || '',
+      };
+      setSelectedMeeting(updated);
+      setPastMeetings(prev => prev.map(x => x.id === m.id ? updated : x));
+    } catch (err: any) {
+      setDraftError(err?.message || 'Error');
+    } finally {
+      setIsRetranscribing(false);
     }
   };
 
@@ -669,15 +708,55 @@ const App: React.FC = () => {
                   <i className="fas fa-file-pen text-amber-500 mt-0.5"></i>
                   <p className="text-amber-800 text-xs font-semibold leading-relaxed">{t.draftBanner}</p>
                 </div>
+                <div className="flex gap-2 shrink-0">
+                  {selectedMeeting.transcriptSource === 'live' && selectedMeeting.driveLinks?.audioFileId && (
+                    <button
+                      onClick={handleRetranscribe}
+                      disabled={isRetranscribing || isGeneratingDraft}
+                      className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-100 transition-colors disabled:opacity-60"
+                    >
+                      {isRetranscribing
+                        ? <><i className="fas fa-spinner fa-spin mr-1.5"></i>{t.retranscribing}</>
+                        : <><i className="fas fa-arrows-rotate mr-1.5"></i>{t.retranscribeHq}</>}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleGenerateFromDraft}
+                    disabled={isGeneratingDraft || isRetranscribing}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors disabled:opacity-60 ${
+                      selectedMeeting.transcriptSource === 'live' && selectedMeeting.driveLinks?.audioFileId
+                        ? 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100'
+                    }`}
+                  >
+                    {isGeneratingDraft
+                      ? <><i className="fas fa-spinner fa-spin mr-1.5"></i>{t.loading}</>
+                      : <><i className="fas fa-wand-magic-sparkles mr-1.5"></i>{t.generateMinutesNow}</>}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Meeting hoàn chỉnh nhưng transcript nguồn live + có audio → mời gỡ băng lại HQ */}
+            {!selectedMeeting.draft && selectedMeeting.transcriptSource === 'live' && selectedMeeting.driveLinks?.audioFileId && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl">
+                <p className="text-indigo-700 text-xs font-semibold leading-relaxed flex-1">
+                  <i className="fas fa-circle-info mr-1.5"></i>{t.liveSourceNote}
+                </p>
                 <button
-                  onClick={handleGenerateFromDraft}
-                  disabled={isGeneratingDraft}
+                  onClick={handleRetranscribe}
+                  disabled={isRetranscribing}
                   className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-100 transition-colors disabled:opacity-60 shrink-0"
                 >
-                  {isGeneratingDraft
-                    ? <><i className="fas fa-spinner fa-spin mr-1.5"></i>{t.loading}</>
-                    : <><i className="fas fa-wand-magic-sparkles mr-1.5"></i>{t.generateMinutesNow}</>}
+                  {isRetranscribing
+                    ? <><i className="fas fa-spinner fa-spin mr-1.5"></i>{t.retranscribing}</>
+                    : <><i className="fas fa-arrows-rotate mr-1.5"></i>{t.retranscribeHq}</>}
                 </button>
+              </div>
+            )}
+            {draftError && !selectedMeeting.draft && (
+              <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                <p className="text-red-600 text-xs font-bold"><i className="fas fa-exclamation-circle mr-2"></i>{draftError}</p>
               </div>
             )}
             {draftError && selectedMeeting.draft && (

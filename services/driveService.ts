@@ -92,6 +92,16 @@ export const driveService = {
     return res.json();
   },
 
+  /** Tải file audio từ Drive về (dùng cho gỡ băng lại HQ). */
+  async downloadFile(accessToken: string, fileId: string): Promise<Blob> {
+    const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.status === 401) throw new Error('TOKEN_EXPIRED');
+    if (!res.ok) throw new Error(`Drive download error: ${res.status}`);
+    return res.blob();
+  },
+
   /**
    * Lưu file vào appDataFolder (vùng ẩn riêng của app trên Drive user) — dùng
    * backup chìa khoá E2EE. Cần scope drive.appdata; token cũ thiếu scope → 403.

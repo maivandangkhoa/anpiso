@@ -61,6 +61,7 @@ export const useMeetingRecorder = (
   // Khi generateMinutes fail: giữ nguyên transcript/audio để "Thử lại" chỉ chạy lại bước tóm tắt
   const pendingMinutesRef = useRef<{ fullHqText: string; timeRange: string; durationMs: number; blobType: string } | null>(null);
   const [hasPendingMinutes, setHasPendingMinutes] = useState(false);
+  const [transcriptSource, setTranscriptSource] = useState<'hq' | 'live'>('hq');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -183,6 +184,7 @@ export const useMeetingRecorder = (
     try {
       cancelledRef.current = false;
       lastSegmentErrorRef.current = null;
+      setTranscriptSource('hq');
       pendingMinutesRef.current = null;
       setHasPendingMinutes(false);
       micTracksRef.current = [];
@@ -301,6 +303,7 @@ export const useMeetingRecorder = (
             const liveText = getLiveTextRef.current?.() || '';
             if (liveText.trim()) {
               logService.add('text', 'info', 'fallback', 'Gỡ băng HQ thất bại — dùng live transcript làm nguồn biên bản');
+              setTranscriptSource('live');
               fullHqText = liveText;
               hqSegmentsRef.current = [liveText];
               setHqSegments([liveText]);
@@ -400,7 +403,7 @@ export const useMeetingRecorder = (
     status, minutes, errorMessage, isProcessingSegment, hqSegments,
     fullTranslatedTranscript, isTranslatingFull, recordedBlob, elapsedTime,
     micMuted, micAvailable, toggleMic,
-    hasPendingMinutes, retryMinutes,
+    hasPendingMinutes, retryMinutes, transcriptSource,
     startRecording, stopRecording, cancelRecording, reset
   };
 };

@@ -51,11 +51,13 @@ export const meetingService = {
     userEmail: string,
     minutes: MeetingMinutes,
     transcriptText: string,
-    translatedTranscript: string
+    translatedTranscript: string,
+    transcriptSource: 'hq' | 'live' = 'hq'
   ): Promise<string> {
     const base = {
       ownerUid: userUid,
       ownerEmail: userEmail,
+      transcriptSource,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -83,12 +85,14 @@ export const meetingService = {
     userUid: string,
     userEmail: string,
     transcriptText: string,
-    translatedTranscript: string
+    translatedTranscript: string,
+    transcriptSource: 'hq' | 'live' = 'hq'
   ): Promise<string> {
     const base = {
       ownerUid: userUid,
       ownerEmail: userEmail,
       draft: true,
+      transcriptSource,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -188,6 +192,17 @@ export const meetingService = {
       minutes,
       updatedAt: serverTimestamp(),
     });
+  },
+
+  /** Thay transcript bằng bản gỡ băng HQ mới (E2EE-aware), đánh dấu nguồn 'hq'. */
+  async updateTranscript(meetingId: string, transcriptText: string, encrypted: boolean = false): Promise<void> {
+    const patch: any = { transcriptSource: 'hq', updatedAt: serverTimestamp() };
+    if (encrypted && cryptoService.isEnabled() && await cryptoService.hasKey()) {
+      patch.transcriptEnc = await cryptoService.encryptString(transcriptText || '');
+    } else {
+      patch.transcriptText = transcriptText;
+    }
+    await updateDoc(doc(db, MEETINGS_COLLECTION, meetingId), patch);
   },
 
   async updateDriveLinks(meetingId: string, driveLinks: DriveLinks): Promise<void> {
