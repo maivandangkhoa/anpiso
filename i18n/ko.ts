@@ -165,11 +165,16 @@ const ko: TranslationKeys = {
 
   // MinutesDisplay
   meetingMinutes: '회의록',
-  meetingPrefix: '회의',
   timeLabel: '시간',
   locationLabel: '장소',
   participantsSection: '참석자',
   summarySection: '요약',
+  minutesPurpose: '목적',
+  minutesDiscussion: '논의 내용',
+  minutesDecisions: '결정 사항',
+  minutesOpenIssues: '미해결 사항',
+  minutesNone: '없음',
+  minutesOnePerLine: '한 줄에 하나씩...',
   actionItemsSection: 'ACTION ITEMS',
   newTask: '새 작업...',
   enterSummary: '요약을 입력하세요...',

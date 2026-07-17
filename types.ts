@@ -33,11 +33,22 @@ export interface Contact {
   ownerUid: string;
 }
 
+export interface DiscussionTopic {
+  topic: string;
+  content: string;
+}
+
 export interface MeetingMinutes {
   time: string;
   location: string;
   participants: string[];
-  summary: string;
+  // Biên bản có cấu trúc — app tự render heading/bullet, không nhờ AI format chuỗi
+  purpose?: string;
+  discussion?: DiscussionTopic[];
+  decisions?: string[];
+  openIssues?: string[];
+  /** Legacy: meeting lưu trước refactor chỉ có chuỗi summary */
+  summary?: string;
   shortSummary: string; // Tóm tắt ngắn gọn khoảng 10 từ
   actionItems: ActionItem[];
   translatedTranscript: string;

@@ -165,11 +165,16 @@ const en: TranslationKeys = {
 
   // MinutesDisplay
   meetingMinutes: 'Meeting Minutes',
-  meetingPrefix: 'Meeting',
   timeLabel: 'Time',
   locationLabel: 'Location',
   participantsSection: 'PARTICIPANTS',
   summarySection: 'SUMMARY',
+  minutesPurpose: 'PURPOSE',
+  minutesDiscussion: 'DISCUSSION',
+  minutesDecisions: 'DECISIONS',
+  minutesOpenIssues: 'OPEN ISSUES',
+  minutesNone: 'None',
+  minutesOnePerLine: 'One item per line...',
   actionItemsSection: 'ACTION ITEMS',
   newTask: 'New task...',
   enterSummary: 'Enter summary...',

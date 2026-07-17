@@ -292,24 +292,16 @@ export const aiService = {
             2. Translate the ENTIRE transcript to ${targetUpper} and include it in the "translatedTranscript" field.
 
             NOTES:
-            - Ensure the "summary", "shortSummary", and "task" descriptions are written in ${targetUpper} for the end users.
+            - Ensure "purpose", "discussion", "decisions", "openIssues", "shortSummary" and "task" texts are written in ${targetUpper} for the end users.
             - Identify participants, key discussion points, and clear action items.
             - Exclude any filler talk or background noise mentions.
 
-            MINUTES QUALITY STANDARD for "summary" (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
-            Structure "summary" with these sections:
-            1. PURPOSE — 1-2 sentences on why the meeting happened.
-            2. DISCUSSION — cover EVERY distinct topic in order. For each topic write 2-5 sentences: context, the main points raised (attribute to speakers when identifiable), and how the topic concluded. Never merge or omit topics. Guideline: at least one paragraph per 5-7 minutes of meeting time.
-            3. DECISIONS — list every decision that was agreed; if none, state that explicitly.
-            4. OPEN ISSUES — points raised but left unresolved or needing follow-up.
-            Preserve every number, date, amount, deadline and proper name mentioned. Never compress multiple topics into one sentence.
-
-            FORMATTING RULES for "summary" (strict — the text is displayed verbatim):
-            - Translate ALL four section headings into ${minutesLang} (never leave any heading in English) and write them in UPPERCASE.
-            - Each heading sits on ITS OWN LINE, followed by a newline; leave one BLANK line between sections (use \n characters inside the JSON string).
-            - Under DISCUSSION: one paragraph per topic, each starting on a new line with a short topic label and a colon (e.g. "- <topic label>: ..."), blank line between topics.
-            - DECISIONS and OPEN ISSUES are bullet lists: one item per line, each line starting with "- ".
-            - Never output the whole summary as a single paragraph.
+            MINUTES QUALITY STANDARD (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
+            - "purpose": 1-2 sentences on why the meeting happened.
+            - "discussion": one array item per distinct topic, in the order discussed, covering EVERY topic — never merge or omit topics. Each item: "topic" = short label (3-8 words); "content" = 2-5 sentences with context, the main points raised (attribute to speakers when identifiable) and how the topic concluded. Guideline: at least one item per 5-7 minutes of meeting time.
+            - "decisions": every decision that was agreed, one string per decision. Empty array if none.
+            - "openIssues": points raised but left unresolved or needing follow-up. Empty array if none.
+            Preserve every number, date, amount, deadline and proper name mentioned. Do not put headings or bullet characters inside the texts — the app renders structure itself.
             - For "translatedTranscript": keep all [MM:SS] timestamps exactly as they are. Each timestamp segment MUST start on a new line (use \\n before each [MM:SS] timestamp). If a sentence is already in ${targetName}, keep it unchanged. Translate other languages to natural, professional corporate ${targetName}. Output ONLY the translated text.
 
             TIME RANGE: ${timeRange}
@@ -319,24 +311,16 @@ export const aiService = {
             Task: Analyze the following meeting transcript and generate a comprehensive meeting minutes object in JSON format. Do NOT translate anything.
 
             NOTES:
-            - Write the "summary", "shortSummary", and "task" descriptions in ${minutesLang}.
+            - Write "purpose", "discussion", "decisions", "openIssues", "shortSummary" and "task" texts in ${minutesLang}.
             - Identify participants, key discussion points, and clear action items.
             - Exclude any filler talk or background noise mentions.
 
-            MINUTES QUALITY STANDARD for "summary" (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
-            Structure "summary" with these sections:
-            1. PURPOSE — 1-2 sentences on why the meeting happened.
-            2. DISCUSSION — cover EVERY distinct topic in order. For each topic write 2-5 sentences: context, the main points raised (attribute to speakers when identifiable), and how the topic concluded. Never merge or omit topics. Guideline: at least one paragraph per 5-7 minutes of meeting time.
-            3. DECISIONS — list every decision that was agreed; if none, state that explicitly.
-            4. OPEN ISSUES — points raised but left unresolved or needing follow-up.
-            Preserve every number, date, amount, deadline and proper name mentioned. Never compress multiple topics into one sentence.
-
-            FORMATTING RULES for "summary" (strict — the text is displayed verbatim):
-            - Translate ALL four section headings into ${minutesLang} (never leave any heading in English) and write them in UPPERCASE.
-            - Each heading sits on ITS OWN LINE, followed by a newline; leave one BLANK line between sections (use \n characters inside the JSON string).
-            - Under DISCUSSION: one paragraph per topic, each starting on a new line with a short topic label and a colon (e.g. "- <topic label>: ..."), blank line between topics.
-            - DECISIONS and OPEN ISSUES are bullet lists: one item per line, each line starting with "- ".
-            - Never output the whole summary as a single paragraph.
+            MINUTES QUALITY STANDARD (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
+            - "purpose": 1-2 sentences on why the meeting happened.
+            - "discussion": one array item per distinct topic, in the order discussed, covering EVERY topic — never merge or omit topics. Each item: "topic" = short label (3-8 words); "content" = 2-5 sentences with context, the main points raised (attribute to speakers when identifiable) and how the topic concluded. Guideline: at least one item per 5-7 minutes of meeting time.
+            - "decisions": every decision that was agreed, one string per decision. Empty array if none.
+            - "openIssues": points raised but left unresolved or needing follow-up. Empty array if none.
+            Preserve every number, date, amount, deadline and proper name mentioned. Do not put headings or bullet characters inside the texts — the app renders structure itself.
 
             TIME RANGE: ${timeRange}
             TRANSCRIPT:
@@ -346,9 +330,31 @@ export const aiService = {
       time: { type: Type.STRING },
       location: { type: Type.STRING },
       participants: { type: Type.ARRAY, items: { type: Type.STRING } },
-      summary: {
+      purpose: {
         type: Type.STRING,
-        description: `Archival meeting minutes in ${minutesLang}, structured with headed sections: purpose, per-topic discussion, decisions, open issues. Must cover every topic discussed — length proportional to meeting duration.`
+        description: `1-2 sentences on why the meeting happened, in ${minutesLang}.`
+      },
+      discussion: {
+        type: Type.ARRAY,
+        description: `One item per distinct topic discussed, in order, covering every topic. In ${minutesLang}.`,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            topic: { type: Type.STRING, description: 'Short topic label, 3-8 words.' },
+            content: { type: Type.STRING, description: '2-5 sentences: context, main points (with speakers when identifiable), conclusion of the topic.' }
+          },
+          required: ['topic', 'content']
+        }
+      },
+      decisions: {
+        type: Type.ARRAY,
+        description: `Every agreed decision, one string each. Empty if none. In ${minutesLang}.`,
+        items: { type: Type.STRING }
+      },
+      openIssues: {
+        type: Type.ARRAY,
+        description: `Unresolved points needing follow-up. Empty if none. In ${minutesLang}.`,
+        items: { type: Type.STRING }
       },
       shortSummary: {
         type: Type.STRING,
@@ -364,7 +370,7 @@ export const aiService = {
         required: ["task", "pic", "deadline"]
       } },
     };
-    const required = ["time", "location", "participants", "summary", "shortSummary", "actionItems"];
+    const required = ["time", "location", "participants", "purpose", "discussion", "decisions", "openIssues", "shortSummary", "actionItems"];
     if (translate) {
       properties.translatedTranscript = {
         type: Type.STRING,

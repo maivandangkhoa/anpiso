@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { MeetingMinutes, TranscriptLine, ActionItem } from '../types';
 import { useLocale } from '../i18n';
+import MinutesSections from './MinutesSections';
 
 interface Props {
   minutes: MeetingMinutes;
@@ -129,11 +130,9 @@ const MinutesDisplay: React.FC<Props> = ({
     while (s.endsWith('.')) {
       s = s.slice(0, -1).trim();
     }
-    // Không viết hoa chữ cái đầu
-    const lowerFirst = s.charAt(0).toLowerCase() + s.slice(1);
-    // Giới hạn 15 từ
-    const words = lowerFirst.split(/\s+/).slice(0, 15).join(' ');
-    return `${t.meetingPrefix} ${words}`;
+    // Viết hoa chữ cái đầu, giới hạn 15 từ — không thêm prefix "Họp/Meeting"
+    const capFirst = s.charAt(0).toUpperCase() + s.slice(1);
+    return capFirst.split(/\s+/).slice(0, 15).join(' ');
   };
 
   return (
@@ -222,25 +221,12 @@ const MinutesDisplay: React.FC<Props> = ({
               </div>
             </section>
 
-            {/* Summary Section */}
-            <section>
-              <h3 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.25em] mb-4 flex items-center">
-                <span className="w-8 h-[1px] bg-slate-200 mr-3"></span>
-                {t.summarySection}
-              </h3>
-              {isEditing ? (
-                <textarea 
-                  value={localMinutes.summary}
-                  onChange={(e) => updateField('summary', e.target.value)}
-                  className="w-full text-slate-700 text-sm sm:text-base leading-relaxed bg-slate-50/50 p-6 rounded-2xl border border-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-50 min-h-[300px] resize-none transition-all"
-                  placeholder={t.enterSummary}
-                />
-              ) : (
-                <div className="text-slate-700 text-sm sm:text-base leading-loose whitespace-pre-wrap bg-slate-50/50 p-6 sm:p-8 rounded-[2rem] border border-slate-100/80 font-medium">
-                  {localMinutes.summary}
-                </div>
-              )}
-            </section>
+            {/* Nội dung biên bản: cấu trúc mới hoặc summary legacy */}
+            <MinutesSections
+              minutes={localMinutes}
+              isEditing={isEditing}
+              onChange={(patch) => setLocalMinutes(prev => ({ ...prev, ...patch }))}
+            />
           </div>
 
           {/* Action Items Column */}

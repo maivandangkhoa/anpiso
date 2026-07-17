@@ -163,11 +163,16 @@ const vi = {
 
   // MinutesDisplay
   meetingMinutes: 'Biên bản cuộc họp',
-  meetingPrefix: 'Họp',
   timeLabel: 'Thời gian',
   locationLabel: 'Vị trí',
   participantsSection: 'THÀNH PHẦN THAM DỰ',
   summarySection: 'TÓM TẮT NỘI DUNG',
+  minutesPurpose: 'MỤC ĐÍCH',
+  minutesDiscussion: 'THẢO LUẬN',
+  minutesDecisions: 'QUYẾT ĐỊNH',
+  minutesOpenIssues: 'TỒN ĐỌNG',
+  minutesNone: 'Không có',
+  minutesOnePerLine: 'Mỗi dòng một mục...',
   actionItemsSection: 'ACTION ITEMS',
   newTask: 'Nhiệm vụ mới...',
   enterSummary: 'Nhập tóm tắt nội dung...',

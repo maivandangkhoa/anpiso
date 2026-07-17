@@ -28,6 +28,7 @@ import ErrorDisplay from './components/ErrorDisplay';
 import CopyButton from './components/CopyButton';
 import { useHostSharing } from './hooks/useHostSharing';
 import { useLocale } from './i18n';
+import { minutesBodyText, minutesBodyHTML } from './utils/minutesFormat';
 
 const App: React.FC = () => {
   const { t } = useLocale();
@@ -327,12 +328,12 @@ const App: React.FC = () => {
     while (s.endsWith('.')) {
       s = s.slice(0, -1).trim();
     }
-    const lowerFirst = s.charAt(0).toLowerCase() + s.slice(1);
-    return lowerFirst.split(/\s+/).slice(0, 15).join(' ');
+    const capFirst = s.charAt(0).toUpperCase() + s.slice(1);
+    return capFirst.split(/\s+/).slice(0, 15).join(' ');
   };
 
   const generateMinutesHTML = (m: MeetingMinutes) => {
-    const titleText = `${t.meetingPrefix} ${processShortSummary(m.shortSummary)}`;
+    const titleText = processShortSummary(m.shortSummary);
     const participantsHTML = m.participants.map(p => 
       `<span style="display:inline-block; background-color:#f0f4ff; color:#4338ca; padding:8px 16px; border-radius:12px; margin:0 8px 8px 0; font-size:13px; font-weight:700; border:1px solid #e0e7ff;">${p}</span>`
     ).join('');
@@ -399,7 +400,7 @@ const App: React.FC = () => {
                 </div>
                 <div>
                   ${renderSectionHeader(t.summarySection)}
-                  <div style="background-color:#f8fafc; padding:32px; border-radius:32px; border:1px solid #f1f5f9; color:#475569; font-size:15px; line-height:1.8; font-weight:500; white-space:pre-wrap;">${m.summary}</div>
+                  ${minutesBodyHTML(m, t)}
                 </div>
               </td>
               <td width="36%" valign="top">
@@ -418,13 +419,12 @@ const App: React.FC = () => {
 
   // Bản plain-text của biên bản — dùng cho fallback mailto khi chưa bật gửi Gmail trực tiếp
   const generateMinutesText = (m: MeetingMinutes) => [
-    `${t.meetingPrefix} ${processShortSummary(m.shortSummary)}`,
+    processShortSummary(m.shortSummary),
     `${t.timeLabel}: ${m.time}`,
     `${t.locationLabel}: ${m.location}`,
     `${t.participantsSection}: ${m.participants.join(', ')}`,
     '',
-    `${t.summarySection}:`,
-    m.summary,
+    minutesBodyText(m, t),
     '',
     `${t.actionItemsSection}:`,
     ...m.actionItems.map(item => `- ${item.task} (${item.pic} · ${item.deadline})`),
@@ -432,7 +432,7 @@ const App: React.FC = () => {
 
   const handleSendEmail = (updatedMinutes: MeetingMinutes) => {
     const htmlBody = generateMinutesHTML(updatedMinutes);
-    const titleText = `${t.meetingPrefix} ${processShortSummary(updatedMinutes.shortSummary)}`;
+    const titleText = processShortSummary(updatedMinutes.shortSummary);
     const timeParts = updatedMinutes.time.trim().split(/\s+/);
     const displayDate = timeParts.length > 0 ? timeParts[timeParts.length - 1] : "";
     const subjectPrefix = `${t.emailSubjectPrefix} ${titleText}`;
