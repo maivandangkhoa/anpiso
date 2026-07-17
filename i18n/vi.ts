@@ -135,7 +135,7 @@ const vi = {
   readyCompact: 'Sẵn sàng ghi âm',
   settingsToggle: 'Thiết lập',
   captureTip: 'Mẹo: Vào phòng họp trước, rồi bấm ghi âm.',
-  meetingSettingsSection: 'Cài đặt cuộc họp',
+  meetingSettingsSection: 'Ngôn ngữ',
   captureInPerson: 'Họp trực tiếp',
   captureInPersonDesc: 'Thu âm qua micro của thiết bị',
   captureOnline: 'Họp online',

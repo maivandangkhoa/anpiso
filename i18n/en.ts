@@ -135,9 +135,9 @@ const en: TranslationKeys = {
   // RecorderControls
   captureSection: 'Capture',
   readyCompact: 'Ready to record',
-  settingsToggle: 'Settings',
+  settingsToggle: 'Setup',
   captureTip: 'Tip: Join your meeting first, then click record.',
-  meetingSettingsSection: 'Meeting Settings',
+  meetingSettingsSection: 'Languages',
   captureInPerson: 'In-person',
   captureInPersonDesc: "Use your device's microphone",
   captureOnline: 'Online Meeting',

@@ -135,9 +135,9 @@ const ko: TranslationKeys = {
   // RecorderControls
   captureSection: '녹음 소스',
   readyCompact: '녹음 준비 완료',
-  settingsToggle: '설정',
+  settingsToggle: '녹음 설정',
   captureTip: '팁: 먼저 회의에 참여한 후 녹음을 누르세요.',
-  meetingSettingsSection: '회의 설정',
+  meetingSettingsSection: '언어',
   captureInPerson: '대면 회의',
   captureInPersonDesc: '기기 마이크로 녹음',
   captureOnline: '온라인 회의',
