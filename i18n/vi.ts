@@ -230,8 +230,8 @@ const vi = {
   sending: 'Đang gửi...',
   sendEmail: (count: number) => `Gửi email (${count})`,
   cannotSendEmail: 'Không thể gửi email',
-  gmailPendingNote: 'Gửi trực tiếp qua Gmail đang chờ Google xét duyệt — biên bản sẽ được mở trong ứng dụng email của bạn.',
-  openMailApp: (count: number) => `Mở ứng dụng email (${count})`,
+  gmailPendingNote: 'Gửi trực tiếp đang chờ Google xét duyệt — biên bản sẽ được soạn sẵn trong Gmail của bạn, chỉ việc bấm Gửi.',
+  openMailApp: (count: number) => `Soạn trong Gmail (${count})`,
 
   // ViewerPage
   liveViewing: 'Xem trực tiếp',

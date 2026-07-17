@@ -232,8 +232,8 @@ const ko: TranslationKeys = {
   sending: '전송 중...',
   sendEmail: (count: number) => `이메일 전송 (${count})`,
   cannotSendEmail: '이메일을 보낼 수 없습니다',
-  gmailPendingNote: 'Gmail 직접 전송은 Google 검토 대기 중입니다 — 회의록이 이메일 앱에서 열립니다.',
-  openMailApp: (count: number) => `이메일 앱 열기 (${count})`,
+  gmailPendingNote: '직접 전송은 Google 검토 대기 중입니다 — 회의록이 Gmail에 작성되어 열립니다. 보내기만 누르세요.',
+  openMailApp: (count: number) => `Gmail에서 작성 (${count})`,
 
   // ViewerPage
   liveViewing: '실시간 보기',

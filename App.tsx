@@ -785,6 +785,7 @@ const App: React.FC = () => {
           htmlBody={sendHtmlBody}
           textBody={sendTextBody}
           userUid={user?.uid || ''}
+          userEmail={user?.email || ''}
           onClose={() => setShowSendDialog(false)}
         />
       )}

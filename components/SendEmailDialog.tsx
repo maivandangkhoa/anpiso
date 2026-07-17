@@ -12,6 +12,7 @@ interface Props {
   htmlBody: string;
   textBody: string;
   userUid: string;
+  userEmail: string;
   onClose: () => void;
 }
 
@@ -28,6 +29,7 @@ const SendEmailDialog: React.FC<Props> = ({
   htmlBody,
   textBody,
   userUid,
+  userEmail,
   onClose,
 }) => {
   const { t } = useLocale();
@@ -110,7 +112,16 @@ const SendEmailDialog: React.FC<Props> = ({
     if (recipients.length === 0) return;
 
     if (!GMAIL_DIRECT) {
-      window.location.href = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(textBody)}`;
+      // Mở Gmail web soạn sẵn với đúng tài khoản đang đăng nhập app (authuser)
+      const params = new URLSearchParams({
+        view: 'cm',
+        fs: '1',
+        to: recipients.join(','),
+        su: subject,
+        body: textBody,
+        authuser: userEmail,
+      });
+      window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener');
       handleClose();
       return;
     }

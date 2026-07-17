@@ -232,8 +232,8 @@ const en: TranslationKeys = {
   sending: 'Sending...',
   sendEmail: (count: number) => `Send email (${count})`,
   cannotSendEmail: 'Cannot send email',
-  gmailPendingNote: 'Direct Gmail sending is pending Google review — the minutes will open in your email app instead.',
-  openMailApp: (count: number) => `Open email app (${count})`,
+  gmailPendingNote: 'Direct sending is pending Google review — the minutes will be drafted in your Gmail, just hit Send.',
+  openMailApp: (count: number) => `Compose in Gmail (${count})`,
 
   // ViewerPage
   liveViewing: 'Live viewing',
