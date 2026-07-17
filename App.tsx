@@ -28,6 +28,7 @@ import ErrorDisplay from './components/ErrorDisplay';
 import CopyButton from './components/CopyButton';
 import { useHostSharing } from './hooks/useHostSharing';
 import { useLocale } from './i18n';
+import { formatTime } from './utils/textUtils';
 import { minutesBodyText, minutesBodyHTML } from './utils/minutesFormat';
 
 const App: React.FC = () => {
@@ -165,7 +166,12 @@ const App: React.FC = () => {
     stopRecording,
     cancelRecording,
     reset
-  } = useMeetingRecorder(connectAI, cleanupAI, targetLang, translationEnabled);
+  } = useMeetingRecorder(connectAI, cleanupAI, targetLang, translationEnabled, () =>
+    liveTranscript
+      .filter(l => l.type === 'input')
+      .map(l => `[${formatTime(l.timestamp)}] ${l.text}`)
+      .join('\n')
+  );
 
   // WebRTC sharing
   const {

@@ -24,7 +24,18 @@ const getSupportedMimeType = (): string => {
   return ''; // browser default
 };
 
-export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<void>, cleanupAI: () => void, targetLang: TargetLanguage = 'vi', translationEnabled: boolean = true) => {
+export const useMeetingRecorder = (
+  connectAI: (stream: MediaStream) => Promise<void>,
+  cleanupAI: () => void,
+  targetLang: TargetLanguage = 'vi',
+  translationEnabled: boolean = true,
+  getLiveTranscriptText?: () => string
+) => {
+  // Live transcript làm nguồn dự phòng khi gỡ băng HQ thất bại toàn bộ
+  const getLiveTextRef = useRef(getLiveTranscriptText);
+  getLiveTextRef.current = getLiveTranscriptText;
+  const lastSegmentErrorRef = useRef<string | null>(null);
+
   const targetLangRef = useRef(targetLang);
   useEffect(() => { targetLangRef.current = targetLang; }, [targetLang]);
 
@@ -89,8 +100,9 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
         hqSegmentsRef.current[index] = shifted;
         setHqSegments([...hqSegmentsRef.current]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error transcribing segment ${index}:`, err);
+      lastSegmentErrorRef.current = err?.message || String(err);
     } finally {
       setIsProcessingSegment(false);
     }
@@ -167,6 +179,7 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
   const startRecording = async (audioSourceType: AudioSource) => {
     try {
       cancelledRef.current = false;
+      lastSegmentErrorRef.current = null;
       pendingMinutesRef.current = null;
       setHasPendingMinutes(false);
       micTracksRef.current = [];
@@ -268,11 +281,23 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
             await processSegment(finalBlob, finalTimeIndex, blobType);
           }
 
-          const fullHqText = hqSegmentsRef.current.filter(t => t && t.trim()).join("\n\n---\n\n");
-          
-          // 3. KIỂM TRA: Nếu không có chữ nào, báo lỗi và dừng, tránh AI bịa chuyện
+          let fullHqText = hqSegmentsRef.current.filter(t => t && t.trim()).join("\n\n---\n\n");
+
+          // 3. Gỡ băng HQ trống → dùng live transcript làm nguồn dự phòng thay vì vứt cả cuộc họp
           if (!fullHqText.trim()) {
-            throw new Error("Không có nội dung âm thanh nào được nhận diện. Vui lòng kiểm tra lại Microphone hoặc quyền truy cập âm thanh.");
+            const liveText = getLiveTextRef.current?.() || '';
+            if (liveText.trim()) {
+              logService.add('text', 'info', 'fallback', 'Gỡ băng HQ thất bại — dùng live transcript làm nguồn biên bản');
+              fullHqText = liveText;
+              hqSegmentsRef.current = [liveText];
+              setHqSegments([liveText]);
+            } else {
+              // Thật sự không có gì — báo kèm nguyên nhân gỡ băng nếu có, tránh chẩn đoán nhầm
+              const reason = lastSegmentErrorRef.current
+                ? ` Nguyên nhân từ bước gỡ băng: ${lastSegmentErrorRef.current}`
+                : '';
+              throw new Error(`Không có nội dung âm thanh nào được nhận diện. Vui lòng kiểm tra lại Microphone hoặc quyền truy cập âm thanh.${reason}`);
+            }
           }
 
           const timeRange = formatDateTimeRange(startClockTimeRef.current || new Date(), stopClockTime);
