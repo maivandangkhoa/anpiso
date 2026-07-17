@@ -246,6 +246,14 @@ export const aiService = {
             - Ensure the "summary", "shortSummary", and "task" descriptions are written in ${targetUpper} for the end users.
             - Identify participants, key discussion points, and clear action items.
             - Exclude any filler talk or background noise mentions.
+
+            MINUTES QUALITY STANDARD for "summary" (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
+            Structure "summary" as plain text with these headed sections, heading labels written in ${minutesLang}:
+            1. PURPOSE — 1-2 sentences on why the meeting happened.
+            2. DISCUSSION — cover EVERY distinct topic in order. For each topic write 2-5 sentences: context, the main points raised (attribute to speakers when identifiable), and how the topic concluded. Never merge or omit topics. Guideline: at least one paragraph per 5-7 minutes of meeting time.
+            3. DECISIONS — list every decision that was agreed; if none, state that explicitly.
+            4. OPEN ISSUES — points raised but left unresolved or needing follow-up.
+            Preserve every number, date, amount, deadline and proper name mentioned. Never compress multiple topics into one sentence.
             - For "translatedTranscript": keep all [MM:SS] timestamps exactly as they are. Each timestamp segment MUST start on a new line (use \\n before each [MM:SS] timestamp). If a sentence is already in ${targetName}, keep it unchanged. Translate other languages to natural, professional corporate ${targetName}. Output ONLY the translated text.
 
             TIME RANGE: ${timeRange}
@@ -259,6 +267,14 @@ export const aiService = {
             - Identify participants, key discussion points, and clear action items.
             - Exclude any filler talk or background noise mentions.
 
+            MINUTES QUALITY STANDARD for "summary" (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
+            Structure "summary" as plain text with these headed sections, heading labels written in ${minutesLang}:
+            1. PURPOSE — 1-2 sentences on why the meeting happened.
+            2. DISCUSSION — cover EVERY distinct topic in order. For each topic write 2-5 sentences: context, the main points raised (attribute to speakers when identifiable), and how the topic concluded. Never merge or omit topics. Guideline: at least one paragraph per 5-7 minutes of meeting time.
+            3. DECISIONS — list every decision that was agreed; if none, state that explicitly.
+            4. OPEN ISSUES — points raised but left unresolved or needing follow-up.
+            Preserve every number, date, amount, deadline and proper name mentioned. Never compress multiple topics into one sentence.
+
             TIME RANGE: ${timeRange}
             TRANSCRIPT:
             ${fullTranscript}`;
@@ -269,7 +285,7 @@ export const aiService = {
       participants: { type: Type.ARRAY, items: { type: Type.STRING } },
       summary: {
         type: Type.STRING,
-        description: `Detailed summary of the meeting content in ${minutesLang}.`
+        description: `Archival meeting minutes in ${minutesLang}, structured with headed sections: purpose, per-topic discussion, decisions, open issues. Must cover every topic discussed — length proportional to meeting duration.`
       },
       shortSummary: {
         type: Type.STRING,
