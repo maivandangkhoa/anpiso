@@ -110,6 +110,7 @@ const vi = {
   liveSourceNote: 'Transcript của cuộc họp này tạo từ bản ghi trực tiếp — độ chính xác thấp hơn bản gỡ băng từ audio gốc.',
   lockedMeeting: 'Cuộc họp đã mã hoá',
   lockedMeetingHint: 'Cần chìa khoá để mở — khôi phục khoá trong menu tài khoản',
+  settingsMenu: 'Cài đặt',
   logout: 'Đăng xuất',
   logoutTitle: 'Đăng xuất tài khoản',
   logoutMessage: 'Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng? Mọi dữ liệu phiên làm việc hiện tại sẽ không còn được lưu trữ.',

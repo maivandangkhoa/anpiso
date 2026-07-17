@@ -112,6 +112,7 @@ const en: TranslationKeys = {
   liveSourceNote: 'This meeting transcript came from the live captions — less accurate than transcribing the original audio.',
   lockedMeeting: 'Encrypted meeting',
   lockedMeetingHint: 'Key required — restore your key in the account menu',
+  settingsMenu: 'Settings',
   logout: 'Log out',
   logoutTitle: 'Log out',
   logoutMessage: 'Are you sure you want to log out? Current session data will not be saved.',

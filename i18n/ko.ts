@@ -112,6 +112,7 @@ const ko: TranslationKeys = {
   liveSourceNote: '이 회의의 자막은 실시간 캡션에서 생성되어 원본 오디오 전사보다 정확도가 낮습니다.',
   lockedMeeting: '암호화된 회의',
   lockedMeetingHint: '키가 필요합니다 — 계정 메뉴에서 키를 복원하세요',
+  settingsMenu: '설정',
   logout: '로그아웃',
   logoutTitle: '로그아웃',
   logoutMessage: '로그아웃하시겠습니까? 현재 세션 데이터가 저장되지 않습니다.',
