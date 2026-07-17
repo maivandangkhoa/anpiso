@@ -297,12 +297,19 @@ export const aiService = {
             - Exclude any filler talk or background noise mentions.
 
             MINUTES QUALITY STANDARD for "summary" (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
-            Structure "summary" as plain text with these headed sections, heading labels written in ${minutesLang}:
+            Structure "summary" with these sections:
             1. PURPOSE — 1-2 sentences on why the meeting happened.
             2. DISCUSSION — cover EVERY distinct topic in order. For each topic write 2-5 sentences: context, the main points raised (attribute to speakers when identifiable), and how the topic concluded. Never merge or omit topics. Guideline: at least one paragraph per 5-7 minutes of meeting time.
             3. DECISIONS — list every decision that was agreed; if none, state that explicitly.
             4. OPEN ISSUES — points raised but left unresolved or needing follow-up.
             Preserve every number, date, amount, deadline and proper name mentioned. Never compress multiple topics into one sentence.
+
+            FORMATTING RULES for "summary" (strict — the text is displayed verbatim):
+            - Translate ALL four section headings into ${minutesLang} (never leave any heading in English) and write them in UPPERCASE.
+            - Each heading sits on ITS OWN LINE, followed by a newline; leave one BLANK line between sections (use \n characters inside the JSON string).
+            - Under DISCUSSION: one paragraph per topic, each starting on a new line with a short topic label and a colon (e.g. "- <topic label>: ..."), blank line between topics.
+            - DECISIONS and OPEN ISSUES are bullet lists: one item per line, each line starting with "- ".
+            - Never output the whole summary as a single paragraph.
             - For "translatedTranscript": keep all [MM:SS] timestamps exactly as they are. Each timestamp segment MUST start on a new line (use \\n before each [MM:SS] timestamp). If a sentence is already in ${targetName}, keep it unchanged. Translate other languages to natural, professional corporate ${targetName}. Output ONLY the translated text.
 
             TIME RANGE: ${timeRange}
@@ -317,12 +324,19 @@ export const aiService = {
             - Exclude any filler talk or background noise mentions.
 
             MINUTES QUALITY STANDARD for "summary" (archival minutes, NOT an executive brief — a person who missed the meeting must understand what happened):
-            Structure "summary" as plain text with these headed sections, heading labels written in ${minutesLang}:
+            Structure "summary" with these sections:
             1. PURPOSE — 1-2 sentences on why the meeting happened.
             2. DISCUSSION — cover EVERY distinct topic in order. For each topic write 2-5 sentences: context, the main points raised (attribute to speakers when identifiable), and how the topic concluded. Never merge or omit topics. Guideline: at least one paragraph per 5-7 minutes of meeting time.
             3. DECISIONS — list every decision that was agreed; if none, state that explicitly.
             4. OPEN ISSUES — points raised but left unresolved or needing follow-up.
             Preserve every number, date, amount, deadline and proper name mentioned. Never compress multiple topics into one sentence.
+
+            FORMATTING RULES for "summary" (strict — the text is displayed verbatim):
+            - Translate ALL four section headings into ${minutesLang} (never leave any heading in English) and write them in UPPERCASE.
+            - Each heading sits on ITS OWN LINE, followed by a newline; leave one BLANK line between sections (use \n characters inside the JSON string).
+            - Under DISCUSSION: one paragraph per topic, each starting on a new line with a short topic label and a colon (e.g. "- <topic label>: ..."), blank line between topics.
+            - DECISIONS and OPEN ISSUES are bullet lists: one item per line, each line starting with "- ".
+            - Never output the whole summary as a single paragraph.
 
             TIME RANGE: ${timeRange}
             TRANSCRIPT:
