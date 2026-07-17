@@ -16,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-type SendState = 'idle' | 'sending' | 'success' | 'error' | 'copied';
+type SendState = 'idle' | 'sending' | 'success' | 'error';
 
 // Gửi trực tiếp qua Gmail API cần Google verify scope gmail.send (restricted).
 // Khi flag tắt: fallback mở mail client của user qua mailto (không cần scope nào).
@@ -39,7 +39,6 @@ const SendEmailDialog: React.FC<Props> = ({
   const [extraEmail, setExtraEmail] = useState('');
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
-  const [gmailUrl, setGmailUrl] = useState('');
   const isAddingRef = useRef(false);
 
   // Load contacts when dialog opens
@@ -131,8 +130,8 @@ const SendEmailDialog: React.FC<Props> = ({
         await navigator.clipboard.writeText(textBody).catch(() => {});
       }
       const params = new URLSearchParams({ view: 'cm', fs: '1', to: recipients.join(','), su: subject, authuser: userEmail });
-      setGmailUrl(`https://mail.google.com/mail/?${params.toString()}`);
-      setSendState('copied');
+      window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener');
+      handleClose();
       return;
     }
 
@@ -171,29 +170,7 @@ const SendEmailDialog: React.FC<Props> = ({
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-8 animate-in zoom-in-95 duration-300">
 
-        {sendState === 'copied' ? (
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-6">
-              <i className="fas fa-clipboard-check text-indigo-500 text-2xl"></i>
-            </div>
-            <h3 className="text-xl font-black text-slate-800 mb-2">{t.gmailCopiedTitle}</h3>
-            <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">{t.gmailCopiedDesc}</p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => { window.open(gmailUrl, '_blank', 'noopener'); handleClose(); }}
-                className="w-full py-3.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
-              >
-                <i className="fas fa-arrow-up-right-from-square mr-2"></i>{t.openGmailNow}
-              </button>
-              <button
-                onClick={handleClose}
-                className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-400 hover:bg-slate-50 transition-colors"
-              >
-                {t.close}
-              </button>
-            </div>
-          </div>
-        ) : sendState === 'success' ? (
+        {sendState === 'success' ? (
           <div className="text-center">
             <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
               <i className="fas fa-check text-emerald-500 text-2xl"></i>
@@ -290,6 +267,14 @@ const SendEmailDialog: React.FC<Props> = ({
               <div className="p-3 bg-red-50 rounded-xl border border-red-100 mb-4">
                 <p className="text-red-600 text-xs font-bold">
                   <i className="fas fa-exclamation-circle mr-2"></i>{errorMsg}
+                </p>
+              </div>
+            )}
+
+            {!GMAIL_DIRECT && (
+              <div className="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 mb-4">
+                <p className="text-indigo-600 text-[11px] font-semibold leading-relaxed">
+                  <i className="fas fa-clipboard-check mr-1.5"></i>{t.gmailPasteHint}
                 </p>
               </div>
             )}

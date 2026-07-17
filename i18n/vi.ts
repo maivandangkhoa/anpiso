@@ -230,10 +230,8 @@ const vi = {
   sending: 'Đang gửi...',
   sendEmail: (count: number) => `Gửi email (${count})`,
   cannotSendEmail: 'Không thể gửi email',
+  gmailPasteHint: 'Bấm nút bên dưới: biên bản (kèm định dạng) sẽ được sao chép và Gmail mở sẵn người nhận — bạn chỉ cần dán bằng Ctrl+V (Cmd+V trên Mac) rồi Gửi.',
   openMailApp: (count: number) => `Soạn trong Gmail (${count})`,
-  gmailCopiedTitle: 'Đã sao chép biên bản',
-  gmailCopiedDesc: 'Biên bản (kèm định dạng) đã được sao chép. Bấm "Mở Gmail", dán vào thư bằng Ctrl+V (Cmd+V trên Mac) rồi Gửi.',
-  openGmailNow: 'Mở Gmail',
 
   // ViewerPage
   liveViewing: 'Xem trực tiếp',

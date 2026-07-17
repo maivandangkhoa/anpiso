@@ -232,10 +232,8 @@ const en: TranslationKeys = {
   sending: 'Sending...',
   sendEmail: (count: number) => `Send email (${count})`,
   cannotSendEmail: 'Cannot send email',
+  gmailPasteHint: 'Click the button below: the formatted minutes are copied and Gmail opens with recipients ready — just paste with Ctrl+V (Cmd+V on Mac) and hit Send.',
   openMailApp: (count: number) => `Compose in Gmail (${count})`,
-  gmailCopiedTitle: 'Minutes copied',
-  gmailCopiedDesc: 'The formatted minutes were copied to your clipboard. Click "Open Gmail", paste with Ctrl+V (Cmd+V on Mac), then hit Send.',
-  openGmailNow: 'Open Gmail',
 
   // ViewerPage
   liveViewing: 'Live viewing',
