@@ -235,7 +235,7 @@ const en: TranslationKeys = {
   gmailPendingNote: 'Direct sending is pending Google review — the minutes will be drafted in your Gmail, just hit Send.',
   openMailApp: (count: number) => `Compose in Gmail (${count})`,
   gmailCopiedTitle: 'Minutes copied',
-  gmailCopiedDesc: 'The minutes are too long to prefill via link, so they were copied (with formatting) to your clipboard. In the Gmail window that just opened, press Ctrl+V (Cmd+V on Mac) to paste.',
+  gmailCopiedDesc: 'The formatted minutes were copied to your clipboard. In the Gmail window that just opened, press Ctrl+V (Cmd+V on Mac) to paste, then hit Send.',
 
   // ViewerPage
   liveViewing: 'Live viewing',

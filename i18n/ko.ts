@@ -235,7 +235,7 @@ const ko: TranslationKeys = {
   gmailPendingNote: '직접 전송은 Google 검토 대기 중입니다 — 회의록이 Gmail에 작성되어 열립니다. 보내기만 누르세요.',
   openMailApp: (count: number) => `Gmail에서 작성 (${count})`,
   gmailCopiedTitle: '회의록 복사됨',
-  gmailCopiedDesc: '회의록이 길어 링크로 채울 수 없어 서식과 함께 클립보드에 복사했습니다. 방금 열린 Gmail 창에서 Ctrl+V (Mac은 Cmd+V)로 붙여넣으세요.',
+  gmailCopiedDesc: '서식이 포함된 회의록이 클립보드에 복사되었습니다. 방금 열린 Gmail 창에서 Ctrl+V (Mac은 Cmd+V)로 붙여넣은 뒤 보내기를 누르세요.',
 
   // ViewerPage
   liveViewing: '실시간 보기',

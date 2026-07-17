@@ -233,7 +233,7 @@ const vi = {
   gmailPendingNote: 'Gửi trực tiếp đang chờ Google xét duyệt — biên bản sẽ được soạn sẵn trong Gmail của bạn, chỉ việc bấm Gửi.',
   openMailApp: (count: number) => `Soạn trong Gmail (${count})`,
   gmailCopiedTitle: 'Đã sao chép biên bản',
-  gmailCopiedDesc: 'Biên bản quá dài để điền sẵn qua đường link, nên đã được sao chép (kèm định dạng) vào clipboard. Trong cửa sổ Gmail vừa mở, bấm Ctrl+V (Cmd+V trên Mac) để dán.',
+  gmailCopiedDesc: 'Biên bản (kèm định dạng) đã được sao chép vào clipboard. Trong cửa sổ Gmail vừa mở, bấm Ctrl+V (Cmd+V trên Mac) để dán vào thư rồi Gửi.',
 
   // ViewerPage
   liveViewing: 'Xem trực tiếp',

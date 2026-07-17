@@ -112,34 +112,26 @@ const SendEmailDialog: React.FC<Props> = ({
     if (recipients.length === 0) return;
 
     if (!GMAIL_DIRECT) {
-      // Mở Gmail web soạn sẵn với đúng tài khoản đang đăng nhập app (authuser)
-      const base = { view: 'cm', fs: '1', to: recipients.join(','), su: subject, authuser: userEmail };
-      const fullUrl = `https://mail.google.com/mail/?${new URLSearchParams({ ...base, body: textBody })}`;
-
-      // URL quá dài sẽ bị Gmail cắt → copy biên bản (kèm định dạng HTML) vào
-      // clipboard, mở compose trống và hướng dẫn user dán bằng Ctrl+V
-      if (fullUrl.length > 7500) {
-        try {
-          if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                'text/html': new Blob([htmlBody], { type: 'text/html' }),
-                'text/plain': new Blob([textBody], { type: 'text/plain' }),
-              }),
-            ]);
-          } else {
-            await navigator.clipboard.writeText(textBody);
-          }
-        } catch {
-          await navigator.clipboard.writeText(textBody).catch(() => {});
+      // Gmail compose URL chỉ nhận plain text → luôn đi đường clipboard:
+      // copy biên bản dạng HTML (dán ra giữ nguyên định dạng) + plain dự phòng,
+      // mở compose sẵn người nhận + tiêu đề, hướng dẫn user Ctrl+V
+      try {
+        if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': new Blob([htmlBody], { type: 'text/html' }),
+              'text/plain': new Blob([textBody], { type: 'text/plain' }),
+            }),
+          ]);
+        } else {
+          await navigator.clipboard.writeText(textBody);
         }
-        window.open(`https://mail.google.com/mail/?${new URLSearchParams(base)}`, '_blank', 'noopener');
-        setSendState('copied');
-        return;
+      } catch {
+        await navigator.clipboard.writeText(textBody).catch(() => {});
       }
-
-      window.open(fullUrl, '_blank', 'noopener');
-      handleClose();
+      const params = new URLSearchParams({ view: 'cm', fs: '1', to: recipients.join(','), su: subject, authuser: userEmail });
+      window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener');
+      setSendState('copied');
       return;
     }
 
