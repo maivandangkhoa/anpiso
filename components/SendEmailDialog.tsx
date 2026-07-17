@@ -39,6 +39,7 @@ const SendEmailDialog: React.FC<Props> = ({
   const [extraEmail, setExtraEmail] = useState('');
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [gmailUrl, setGmailUrl] = useState('');
   const isAddingRef = useRef(false);
 
   // Load contacts when dialog opens
@@ -130,7 +131,7 @@ const SendEmailDialog: React.FC<Props> = ({
         await navigator.clipboard.writeText(textBody).catch(() => {});
       }
       const params = new URLSearchParams({ view: 'cm', fs: '1', to: recipients.join(','), su: subject, authuser: userEmail });
-      window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener');
+      setGmailUrl(`https://mail.google.com/mail/?${params.toString()}`);
       setSendState('copied');
       return;
     }
@@ -177,12 +178,20 @@ const SendEmailDialog: React.FC<Props> = ({
             </div>
             <h3 className="text-xl font-black text-slate-800 mb-2">{t.gmailCopiedTitle}</h3>
             <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">{t.gmailCopiedDesc}</p>
-            <button
-              onClick={handleClose}
-              className="w-full py-3.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
-            >
-              {t.close}
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => { window.open(gmailUrl, '_blank', 'noopener'); handleClose(); }}
+                className="w-full py-3.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+              >
+                <i className="fas fa-arrow-up-right-from-square mr-2"></i>{t.openGmailNow}
+              </button>
+              <button
+                onClick={handleClose}
+                className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-400 hover:bg-slate-50 transition-colors"
+              >
+                {t.close}
+              </button>
+            </div>
           </div>
         ) : sendState === 'success' ? (
           <div className="text-center">

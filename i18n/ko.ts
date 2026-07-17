@@ -234,7 +234,8 @@ const ko: TranslationKeys = {
   cannotSendEmail: '이메일을 보낼 수 없습니다',
   openMailApp: (count: number) => `Gmail에서 작성 (${count})`,
   gmailCopiedTitle: '회의록 복사됨',
-  gmailCopiedDesc: '서식이 포함된 회의록이 클립보드에 복사되었습니다. 방금 열린 Gmail 창에서 Ctrl+V (Mac은 Cmd+V)로 붙여넣은 뒤 보내기를 누르세요.',
+  gmailCopiedDesc: '서식이 포함된 회의록이 클립보드에 복사되었습니다. "Gmail 열기"를 누르고 Ctrl+V (Mac은 Cmd+V)로 붙여넣은 뒤 보내기를 누르세요.',
+  openGmailNow: 'Gmail 열기',
 
   // ViewerPage
   liveViewing: '실시간 보기',
