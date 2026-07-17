@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserSettings } from '../types';
 import { apiKeyService } from '../services/apiKeyService';
 import { translateKeyService } from '../services/translateKeyService';
