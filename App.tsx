@@ -158,6 +158,8 @@ const App: React.FC = () => {
     micMuted,
     micAvailable,
     toggleMic,
+    hasPendingMinutes,
+    retryMinutes,
     startRecording,
     stopRecording,
     cancelRecording,
@@ -758,7 +760,7 @@ const App: React.FC = () => {
         )}
 
         {status === RecordingStatus.ERROR && (
-          <ErrorDisplay errorMessage={errorMessage} onRetry={handleReset} />
+          <ErrorDisplay errorMessage={errorMessage} onRetry={hasPendingMinutes ? retryMinutes : handleReset} />
         )}
       </div>
       {showLogBar && <LogBar rpmLimit={rpmLimit} onRpmChange={setRpmLimit} isRecording={status === RecordingStatus.RECORDING} onHeightChange={setLogBarHeight} />}

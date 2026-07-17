@@ -40,6 +40,12 @@ const modelSlots: Record<string, { primary: string; fallback: string; current: s
     fallback: 'gemini-3-flash-preview',
     current: 'gemini-3.1-flash-lite',
   },
+  // Fallback khẩn cấp cho transcribe + biên bản khi model user chọn bị 503
+  hq: {
+    primary: 'gemini-3.5-flash',
+    fallback: 'gemini-3-flash-preview',
+    current: 'gemini-3.5-flash',
+  },
 };
 
 function getModel(slot: string): string {
@@ -54,23 +60,66 @@ function swapModel(slot: string): string {
   return s.current;
 }
 
+/** Lỗi thoáng qua đáng retry: rớt mạng, timeout, 5xx phía server */
+function isTransientError(error: any): boolean {
+  if (!error) return false;
+  const msg = (error.message || error.toString() || '').toLowerCase();
+  const code = Number(error.code || error.status || 0);
+  return (
+    error.name === 'TypeError' || // fetch: "Failed to fetch"
+    msg.includes('fetch') || msg.includes('network') || msg.includes('timeout') ||
+    msg.includes('timed out') || msg.includes('socket') || msg.includes('econn') ||
+    msg.includes('xhr error') || msg.includes('internal error') ||
+    code === 500 || code === 502 || code === 504
+  );
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const BACKOFF_MS = [2000, 5000, 10000];
+
 /**
- * Retry wrapper: on unusable key → rotate key; on 503 → swap model and retry.
+ * Retry wrapper: key hỏng → xoay key; 503 → đổi model fallback; lỗi mạng/5xx →
+ * backoff 2s/5s/10s. Tối đa 4 lượt gọi rồi mới ném lỗi ra ngoài.
  */
 async function withRetry<T>(label: string, fn: (model?: string) => Promise<T>, modelSlot?: string): Promise<T> {
-  try {
-    return await fn();
-  } catch (e: any) {
-    if (apiKeyService.shouldRotateKey(e) && apiKeyService.rotateKey(e)) {
-      logService.add('text', 'info', 'retry', `${label}: retrying with next key...`);
-      return await fn();
+  const MAX_ATTEMPTS = 4;
+  let modelOverride: string | undefined;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fn(modelOverride);
+    } catch (e: any) {
+      const isLast = attempt === MAX_ATTEMPTS;
+
+      if (apiKeyService.shouldRotateKey(e)) {
+        if (!isLast && apiKeyService.rotateKey(e)) {
+          logService.add('text', 'info', 'retry', `${label}: retrying with next key...`);
+          continue;
+        }
+        throw e;
+      }
+
+      if (isModelOverloaded(e)) {
+        if (isLast) throw e;
+        if (modelSlot) modelOverride = swapModel(modelSlot);
+        const delay = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
+        logService.add('text', 'info', 'retry', `${label}: overloaded, retry ${attempt}/${MAX_ATTEMPTS - 1} in ${delay / 1000}s...`);
+        await sleep(delay);
+        continue;
+      }
+
+      if (isTransientError(e)) {
+        if (isLast) throw e;
+        const delay = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
+        logService.add('text', 'info', 'retry', `${label}: transient error (${e?.message || e}), retry ${attempt}/${MAX_ATTEMPTS - 1} in ${delay / 1000}s...`);
+        await sleep(delay);
+        continue;
+      }
+
+      throw e;
     }
-    if (modelSlot && isModelOverloaded(e)) {
-      const newModel = swapModel(modelSlot);
-      return await fn(newModel);
-    }
-    throw e;
   }
+  throw new Error(`${label}: retry loop exhausted`);
 }
 
 export const aiService = {
@@ -197,10 +246,10 @@ export const aiService = {
     const base64Audio = await blobToBase64(blob);
 
     try {
-      return await withRetry('transcribeSegment', async () => {
+      return await withRetry('transcribeSegment', async (modelOverride?: string) => {
         const ai = createClient();
         const response = await ai.models.generateContent({
-          model: modelService.getModel(),
+          model: modelOverride || modelService.getModel(),
           contents: [{ parts: [
             { inlineData: { mimeType, data: base64Audio } },
             { text: `You are a professional transcriptionist specializing in corporate meetings.
@@ -218,7 +267,7 @@ export const aiService = {
         const result = response.text || "";
         logService.add('text', 'res', 'transcribeSegment', result);
         return result;
-      });
+      }, 'hq');
     } catch (e: any) {
       logService.add('text', 'info', 'transcribeSegment_ERR', e.message);
       console.error("Transcription segment error:", e);
@@ -311,10 +360,10 @@ export const aiService = {
     }
 
     try {
-      return await withRetry('generateMinutes', async () => {
+      return await withRetry('generateMinutes', async (modelOverride?: string) => {
         const ai = createClient();
         const response = await ai.models.generateContent({
-          model: modelService.getModel(),
+          model: modelOverride || modelService.getModel(),
           contents: [{ parts: [{ text: prompt }]}],
           config: {
             responseMimeType: "application/json",
@@ -327,7 +376,7 @@ export const aiService = {
         if (!translate) data.translatedTranscript = "";
         logService.add('text', 'res', 'generateMinutes', data);
         return data;
-      });
+      }, 'hq');
     } catch (e: any) {
       logService.add('text', 'info', 'generateMinutes_ERR', e.message);
       console.error("Generate minutes error:", e);

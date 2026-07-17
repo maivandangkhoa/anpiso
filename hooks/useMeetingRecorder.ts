@@ -44,6 +44,9 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
   const micTracksRef = useRef<MediaStreamTrack[]>([]);
   const [micMuted, setMicMuted] = useState(false);
   const [micAvailable, setMicAvailable] = useState(false);
+  // Khi generateMinutes fail: giữ nguyên transcript/audio để "Thử lại" chỉ chạy lại bước tóm tắt
+  const pendingMinutesRef = useRef<{ fullHqText: string; timeRange: string; durationMs: number; blobType: string } | null>(null);
+  const [hasPendingMinutes, setHasPendingMinutes] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -125,9 +128,47 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
     }
   }, []);
 
+  /** Chạy bước tóm tắt từ dữ liệu đã ghim; thành công thì hoàn tất phiên. */
+  const generateAndFinish = async () => {
+    const p = pendingMinutesRef.current;
+    if (!p) throw new Error('Không còn dữ liệu cuộc họp để tạo biên bản.');
+
+    const result = await aiService.generateMinutes(p.fullHqText, p.timeRange, targetLangRef.current, translationEnabledRef.current);
+    setMinutes(result);
+    setFullTranslatedTranscript(result.translatedTranscript || "");
+
+    // Build Cues và fix duration cho file tải về
+    const rawBlob = new Blob(audioChunksRef.current, { type: p.blobType });
+    if (p.blobType.includes('webm')) {
+      logService.add('audio', 'info', 'recorder', `Fixing WebM metadata for download...`);
+      setRecordedBlob(await fixWebmDuration(rawBlob, p.durationMs));
+    } else {
+      setRecordedBlob(rawBlob);
+    }
+
+    pendingMinutesRef.current = null;
+    setHasPendingMinutes(false);
+    setStatus(RecordingStatus.COMPLETED);
+  };
+
+  /** "Thử lại" sau lỗi tóm tắt: không đụng transcript/audio, chỉ gọi lại AI. */
+  const retryMinutes = async () => {
+    if (!pendingMinutesRef.current) return;
+    setErrorMessage(null);
+    setStatus(RecordingStatus.PROCESSING);
+    try {
+      await generateAndFinish();
+    } catch (err: any) {
+      setErrorMessage(err.message);
+      setStatus(RecordingStatus.ERROR);
+    }
+  };
+
   const startRecording = async (audioSourceType: AudioSource) => {
     try {
       cancelledRef.current = false;
+      pendingMinutesRef.current = null;
+      setHasPendingMinutes(false);
       micTracksRef.current = [];
       setMicMuted(false);
       setMicAvailable(false);
@@ -235,21 +276,12 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
           }
 
           const timeRange = formatDateTimeRange(startClockTimeRef.current || new Date(), stopClockTime);
-          const result = await aiService.generateMinutes(fullHqText, timeRange, targetLangRef.current, translationEnabledRef.current);
-          setMinutes(result);
-          setFullTranslatedTranscript(result.translatedTranscript || "");
 
-          // Build Cues và fix duration cho file tải về
-          const rawBlob = new Blob(audioChunksRef.current, { type: blobType });
-          if (blobType.includes('webm')) {
-            logService.add('audio', 'info', 'recorder', `Fixing WebM metadata for download...`);
-            const fixedBlob = await fixWebmDuration(rawBlob, durationMs);
-            setRecordedBlob(fixedBlob);
-          } else {
-            setRecordedBlob(rawBlob);
-          }
+          // Ghim dữ liệu trước khi gọi AI — fail thì còn nguyên để retry
+          pendingMinutesRef.current = { fullHqText, timeRange, durationMs, blobType };
+          setHasPendingMinutes(true);
 
-          setStatus(RecordingStatus.COMPLETED);
+          await generateAndFinish();
 
         } catch (err: any) {
           setErrorMessage(err.message);
@@ -305,6 +337,8 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
 
   const reset = () => {
     setStatus(RecordingStatus.IDLE);
+    pendingMinutesRef.current = null;
+    setHasPendingMinutes(false);
     micTracksRef.current = [];
     setMicMuted(false);
     setMicAvailable(false);
@@ -328,6 +362,7 @@ export const useMeetingRecorder = (connectAI: (stream: MediaStream) => Promise<v
     status, minutes, errorMessage, isProcessingSegment, hqSegments,
     fullTranslatedTranscript, isTranslatingFull, recordedBlob, elapsedTime,
     micMuted, micAvailable, toggleMic,
+    hasPendingMinutes, retryMinutes,
     startRecording, stopRecording, cancelRecording, reset
   };
 };
