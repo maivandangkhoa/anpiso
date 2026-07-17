@@ -115,7 +115,7 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
 
   return (
     <div className="fixed inset-0 z-[200] flex sm:items-center sm:justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full h-full sm:h-auto sm:max-h-[85vh] sm:max-w-2xl bg-white sm:rounded-[2rem] shadow-2xl border border-slate-100 overflow-y-auto custom-scrollbar animate-in sm:zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-300">
+      <div className="w-full h-full sm:h-[700px] sm:max-h-[85vh] sm:max-w-2xl bg-white sm:rounded-[2rem] shadow-2xl border border-slate-100 overflow-y-auto custom-scrollbar animate-in sm:zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-300">
 
         {/* Header */}
         <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-100 px-6 py-4 flex items-center justify-between z-10">
