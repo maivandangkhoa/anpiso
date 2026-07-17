@@ -29,11 +29,14 @@ export const useMeetingRecorder = (
   cleanupAI: () => void,
   targetLang: TargetLanguage = 'vi',
   translationEnabled: boolean = true,
-  getLiveTranscriptText?: () => string
+  getLiveTranscriptText?: () => string,
+  onAudioReady?: (blob: Blob) => void
 ) => {
   // Live transcript làm nguồn dự phòng khi gỡ băng HQ thất bại toàn bộ
   const getLiveTextRef = useRef(getLiveTranscriptText);
   getLiveTextRef.current = getLiveTranscriptText;
+  const onAudioReadyRef = useRef(onAudioReady);
+  onAudioReadyRef.current = onAudioReady;
   const lastSegmentErrorRef = useRef<string | null>(null);
 
   const targetLangRef = useRef(targetLang);
@@ -163,17 +166,6 @@ export const useMeetingRecorder = (
     setStatus(RecordingStatus.COMPLETED);
   };
 
-  /** Build blob audio từ dữ liệu ghim — để App upload Drive khi lưu nháp. */
-  const getPendingAudioBlob = async (): Promise<Blob | null> => {
-    const p = pendingMinutesRef.current;
-    if (!p || audioChunksRef.current.length === 0) return null;
-    const rawBlob = new Blob(audioChunksRef.current, { type: p.blobType });
-    if (p.blobType.includes('webm')) {
-      try { return await fixWebmDuration(rawBlob, p.durationMs); } catch { return rawBlob; }
-    }
-    return rawBlob;
-  };
-
   /** "Thử lại" sau lỗi tóm tắt: không đụng transcript/audio, chỉ gọi lại AI. */
   const retryMinutes = async () => {
     if (!pendingMinutesRef.current) return;
@@ -272,6 +264,16 @@ export const useMeetingRecorder = (
         const stopTime = performance.now();
         const durationMs = stopTime - startTimeRef.current;
         const stopClockTime = new Date();
+
+        // Audio đã hoàn chỉnh ngay lúc dừng → đẩy đi upload sớm, không đợi gỡ băng/tóm tắt
+        if (onAudioReadyRef.current && audioChunksRef.current.length > 0) {
+          const audioType = mimeTypeRef.current.split(';')[0] || 'audio/webm';
+          const raw = new Blob(audioChunksRef.current, { type: audioType });
+          const prep = audioType.includes('webm')
+            ? fixWebmDuration(raw, durationMs).catch(() => raw)
+            : Promise.resolve(raw);
+          prep.then(b => onAudioReadyRef.current?.(b));
+        }
 
         try {
           // 1. Đợi tất cả các task transcription đang chạy hoàn tất
@@ -398,7 +400,7 @@ export const useMeetingRecorder = (
     status, minutes, errorMessage, isProcessingSegment, hqSegments,
     fullTranslatedTranscript, isTranslatingFull, recordedBlob, elapsedTime,
     micMuted, micAvailable, toggleMic,
-    hasPendingMinutes, retryMinutes, getPendingAudioBlob,
+    hasPendingMinutes, retryMinutes,
     startRecording, stopRecording, cancelRecording, reset
   };
 };

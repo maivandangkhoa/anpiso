@@ -58,7 +58,7 @@ const App: React.FC = () => {
   const [sendTextBody, setSendTextBody] = useState('');
   const savedMeetingIdRef = useRef<string | null>(null);
   const draftMeetingIdRef = useRef<string | null>(null);
-  const audioUploadedForRef = useRef<string | null>(null);
+  const pendingDriveLinksRef = useRef<DriveLinks | null>(null);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [pastMeetings, setPastMeetings] = useState<any[]>([]);
@@ -167,16 +167,17 @@ const App: React.FC = () => {
     toggleMic,
     hasPendingMinutes,
     retryMinutes,
-    getPendingAudioBlob,
     startRecording,
     stopRecording,
     cancelRecording,
     reset
-  } = useMeetingRecorder(connectAI, cleanupAI, targetLang, translationEnabled, () =>
-    liveTranscript
+  } = useMeetingRecorder(
+    connectAI, cleanupAI, targetLang, translationEnabled,
+    () => liveTranscript
       .filter(l => l.type === 'input')
       .map(l => `[${formatTime(l.timestamp)}] ${l.text}`)
-      .join('\n')
+      .join('\n'),
+    (blob: Blob) => uploadAudioAtStop(blob)
   );
 
   // WebRTC sharing
@@ -189,13 +190,10 @@ const App: React.FC = () => {
     fullTranslatedTranscript, user, translationEnabled
   );
 
-  // Upload audio to Google Drive (non-blocking)
-  const uploadAudioToDrive = async (
-    meetingId: string,
-    meetingTitle: string,
-    audioBlob: Blob
-  ) => {
-    if (!userSettings.driveFolderId) return;
+  // Upload audio lên Drive NGAY khi bấm dừng (không đợi gỡ băng/tóm tắt) —
+  // audio là nguồn gốc, phải an toàn trước tiên; link gắn vào doc khi doc được tạo
+  const uploadAudioAtStop = async (audioBlob: Blob) => {
+    if (!userSettings.driveEnabled || !userSettings.driveFolderId) return;
 
     // Proactively refresh if token missing or expired (with 60s buffer)
     let token = sessionStorage.getItem('drive_access_token');
@@ -213,6 +211,7 @@ const App: React.FC = () => {
     }
 
     try {
+      const meetingTitle = `Meeting ${new Date().toLocaleString()}`;
       const folder = await driveService.createMeetingFolder(token, userSettings.driveFolderId!, meetingTitle);
 
       const driveLinks: DriveLinks = { folderWebViewLink: folder.webViewLink };
@@ -222,8 +221,11 @@ const App: React.FC = () => {
       driveLinks.audioFileId = audioResult.id;
       driveLinks.audioWebViewLink = audioResult.webViewLink;
 
-      await meetingService.updateDriveLinks(meetingId, driveLinks);
-      console.log('Audio uploaded to Drive:', driveLinks);
+      pendingDriveLinksRef.current = driveLinks;
+      // Doc (biên bản hoặc nháp) đã kịp lưu trước khi upload xong → gắn link ngay
+      const savedId = savedMeetingIdRef.current || draftMeetingIdRef.current;
+      if (savedId) await meetingService.updateDriveLinks(savedId, driveLinks);
+      console.log('Audio uploaded to Drive (at stop):', driveLinks);
     } catch (err) {
       console.error('Drive upload failed (non-blocking):', err);
     }
@@ -233,16 +235,11 @@ const App: React.FC = () => {
   useEffect(() => {
     if (status === RecordingStatus.ERROR && hasPendingMinutes && user && !draftMeetingIdRef.current && hqSegments.length > 0) {
       meetingService.saveDraft(user.uid, user.email, hqSegments.join("\n\n---\n\n"), fullTranslatedTranscript)
-        .then(async id => {
+        .then(id => {
           draftMeetingIdRef.current = id;
           console.log('Draft saved to Firestore:', id);
-          // Audio cũng lên Drive ngay cùng bản nháp — đóng tab không mất gì
-          if (userSettings.driveEnabled) {
-            const blob = await getPendingAudioBlob();
-            if (blob) {
-              audioUploadedForRef.current = id;
-              uploadAudioToDrive(id, `${t.draftMeeting} ${new Date().toLocaleDateString()}`, blob);
-            }
+          if (pendingDriveLinksRef.current) {
+            meetingService.updateDriveLinks(id, pendingDriveLinksRef.current).catch(() => {});
           }
         })
         .catch(err => console.error('Failed to save draft:', err));
@@ -267,10 +264,9 @@ const App: React.FC = () => {
         savedMeetingIdRef.current = id;
         console.log('Meeting saved to Firestore:', id);
 
-        // Upload audio to Drive if enabled (bỏ qua nếu đã upload cùng bản nháp)
-        if (userSettings.driveEnabled && recordedBlob && audioUploadedForRef.current !== id) {
-          const title = minutes.shortSummary || 'Meeting';
-          uploadAudioToDrive(id, title, recordedBlob);
+        // Audio đã upload từ lúc bấm dừng — chỉ cần gắn link vào doc
+        if (pendingDriveLinksRef.current) {
+          meetingService.updateDriveLinks(id, pendingDriveLinksRef.current).catch(() => {});
         }
       }).catch(err => {
         console.error('Failed to save meeting to Firestore:', err);
@@ -360,12 +356,14 @@ const App: React.FC = () => {
     setLiveTranscript([]);
     setShowTranscript(false);
     draftMeetingIdRef.current = null;
+    pendingDriveLinksRef.current = null;
     setDraftError(null);
     startRecording(audioSourceType);
   };
 
   const handleCancel = () => {
     draftMeetingIdRef.current = null;
+    pendingDriveLinksRef.current = null;
     setDraftError(null);
     if (isSharing) stopSharing();
     cancelRecording();
@@ -376,6 +374,7 @@ const App: React.FC = () => {
 
   const handleReset = () => {
     draftMeetingIdRef.current = null;
+    pendingDriveLinksRef.current = null;
     setDraftError(null);
     if (isSharing) stopSharing();
     reset();
