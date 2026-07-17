@@ -28,7 +28,8 @@ const MEETINGS_COLLECTION = 'meetings';
 async function decryptMeetingDoc(id: string, data: any): Promise<any> {
   if (!data.encrypted) return { id, ...data };
   try {
-    const minutes = JSON.parse(await cryptoService.decryptString(data.minutesEnc));
+    // Bản nháp chưa có biên bản → minutesEnc không tồn tại
+    const minutes = data.minutesEnc ? JSON.parse(await cryptoService.decryptString(data.minutesEnc)) : null;
     const transcriptText = await cryptoService.decryptString(data.transcriptEnc || '');
     const translatedTranscript = await cryptoService.decryptString(data.translatedEnc || '');
     const { minutesEnc, transcriptEnc, translatedEnc, ...rest } = data;
@@ -72,6 +73,53 @@ export const meetingService = {
 
     const docRef = await addDoc(collection(db, MEETINGS_COLLECTION), payload);
     return docRef.id;
+  },
+
+  /**
+   * Lưu NHÁP khi bước tạo biên bản thất bại: transcript được bảo toàn bền vững,
+   * biên bản tạo lại sau bằng finalizeDraft (từ chính phiên này hoặc từ lịch sử).
+   */
+  async saveDraft(
+    userUid: string,
+    userEmail: string,
+    transcriptText: string,
+    translatedTranscript: string
+  ): Promise<string> {
+    const base = {
+      ownerUid: userUid,
+      ownerEmail: userEmail,
+      draft: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    const payload = (cryptoService.isEnabled() && await cryptoService.hasKey())
+      ? {
+          ...base,
+          encrypted: true,
+          transcriptEnc: await cryptoService.encryptString(transcriptText || ''),
+          translatedEnc: await cryptoService.encryptString(translatedTranscript || ''),
+        }
+      : { ...base, transcriptText, translatedTranscript };
+    const docRef = await addDoc(collection(db, MEETINGS_COLLECTION), payload);
+    return docRef.id;
+  },
+
+  /** Gắn biên bản vào bản nháp và bỏ cờ draft. */
+  async finalizeDraft(
+    meetingId: string,
+    minutes: MeetingMinutes,
+    translatedTranscript: string,
+    encrypted: boolean = false
+  ): Promise<void> {
+    const patch: any = { draft: false, updatedAt: serverTimestamp() };
+    if (encrypted && cryptoService.isEnabled() && await cryptoService.hasKey()) {
+      patch.minutesEnc = await cryptoService.encryptString(JSON.stringify(minutes));
+      patch.translatedEnc = await cryptoService.encryptString(translatedTranscript || '');
+    } else {
+      patch.minutes = minutes;
+      patch.translatedTranscript = translatedTranscript || '';
+    }
+    await updateDoc(doc(db, MEETINGS_COLLECTION, meetingId), patch);
   },
 
   async getUserMeetings(userUid: string, options?: {

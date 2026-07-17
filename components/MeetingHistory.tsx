@@ -72,7 +72,7 @@ const SwipeableCard: React.FC<{
   const shownParticipants = participantList.slice(0, 3);
   const extraCount = participantList.length - 3;
   const actionCount = m?.actionItems?.length || 0;
-  const title = meeting.locked ? t.lockedMeeting : (m?.shortSummary || t.meetingMinutes);
+  const title = meeting.locked ? t.lockedMeeting : meeting.draft ? t.draftMeeting : (m?.shortSummary || t.meetingMinutes);
 
   return (
     <div className="relative overflow-hidden rounded-2xl">
@@ -97,15 +97,15 @@ const SwipeableCard: React.FC<{
         className="relative group flex items-start gap-4 p-4 bg-white hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 cursor-pointer transition-transform duration-200 ease-out rounded-2xl"
         style={{ transform: `translateX(${offsetX}px)` }}
       >
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${meeting.locked ? 'bg-slate-100' : 'bg-indigo-100 group-hover:bg-indigo-200'}`}>
-          <i className={`text-sm ${meeting.locked ? 'fas fa-lock text-slate-400' : 'fas fa-file-lines text-indigo-600'}`}></i>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${meeting.locked ? 'bg-slate-100' : meeting.draft ? 'bg-amber-100' : 'bg-indigo-100 group-hover:bg-indigo-200'}`}>
+          <i className={`text-sm ${meeting.locked ? 'fas fa-lock text-slate-400' : meeting.draft ? 'fas fa-file-pen text-amber-500' : 'fas fa-file-lines text-indigo-600'}`}></i>
         </div>
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-bold truncate transition-colors ${meeting.locked ? 'text-slate-400' : 'text-slate-700 group-hover:text-indigo-600'}`}>
             {title}
           </p>
           <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-            {meeting.locked ? t.lockedMeetingHint : (m?.time || '')}
+            {meeting.locked ? t.lockedMeetingHint : meeting.draft ? t.draftMeetingHint : (m?.time || '')}
           </p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {shownParticipants.map((p: string, i: number) => (

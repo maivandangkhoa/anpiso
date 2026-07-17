@@ -28,7 +28,8 @@ import ErrorDisplay from './components/ErrorDisplay';
 import CopyButton from './components/CopyButton';
 import { useHostSharing } from './hooks/useHostSharing';
 import { useLocale } from './i18n';
-import { formatTime } from './utils/textUtils';
+import { formatTime, formatDateTimeRange } from './utils/textUtils';
+import { aiService } from './services/aiService';
 import { minutesBodyText, minutesBodyHTML } from './utils/minutesFormat';
 
 const App: React.FC = () => {
@@ -56,6 +57,9 @@ const App: React.FC = () => {
   const [sendHtmlBody, setSendHtmlBody] = useState('');
   const [sendTextBody, setSendTextBody] = useState('');
   const savedMeetingIdRef = useRef<string | null>(null);
+  const draftMeetingIdRef = useRef<string | null>(null);
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const [pastMeetings, setPastMeetings] = useState<any[]>([]);
   const [isMeetingsLoading, setIsMeetingsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -223,16 +227,33 @@ const App: React.FC = () => {
     }
   };
 
+  // Tóm tắt thất bại → lưu NHÁP transcript xuống Firestore ngay, đóng tab không mất họp
+  useEffect(() => {
+    if (status === RecordingStatus.ERROR && hasPendingMinutes && user && !draftMeetingIdRef.current && hqSegments.length > 0) {
+      meetingService.saveDraft(user.uid, user.email, hqSegments.join("\n\n---\n\n"), fullTranslatedTranscript)
+        .then(id => {
+          draftMeetingIdRef.current = id;
+          console.log('Draft saved to Firestore:', id);
+        })
+        .catch(err => console.error('Failed to save draft:', err));
+    }
+  }, [status, hasPendingMinutes, user, hqSegments, fullTranslatedTranscript]);
+
   // Auto-save meeting minutes to Firestore
   useEffect(() => {
     if (minutes && user && status === RecordingStatus.COMPLETED && !savedMeetingIdRef.current) {
-      meetingService.saveMeeting(
-        user.uid,
-        user.email,
-        minutes,
-        hqSegments.join("\n\n---\n\n"),
-        fullTranslatedTranscript
-      ).then(id => {
+      const savePromise = draftMeetingIdRef.current
+        ? meetingService.finalizeDraft(draftMeetingIdRef.current, minutes, fullTranslatedTranscript, cryptoService.isEnabled())
+            .then(() => draftMeetingIdRef.current as string)
+        : meetingService.saveMeeting(
+            user.uid,
+            user.email,
+            minutes,
+            hqSegments.join("\n\n---\n\n"),
+            fullTranslatedTranscript
+          );
+      savePromise.then(id => {
+        draftMeetingIdRef.current = null;
         savedMeetingIdRef.current = id;
         console.log('Meeting saved to Firestore:', id);
 
@@ -285,6 +306,27 @@ const App: React.FC = () => {
     loadMeetings(true);
   };
 
+  // Tạo biên bản từ bản nháp đã lưu (transcript có sẵn trong Firestore)
+  const handleGenerateFromDraft = async () => {
+    const m = selectedMeeting;
+    if (!m?.draft || isGeneratingDraft) return;
+    setIsGeneratingDraft(true);
+    setDraftError(null);
+    try {
+      const created = m.createdAt?.toDate ? m.createdAt.toDate() : new Date();
+      const timeRange = formatDateTimeRange(created, created);
+      const result = await aiService.generateMinutes(m.transcriptText || '', timeRange, targetLang, translationEnabled);
+      await meetingService.finalizeDraft(m.id, result, result.translatedTranscript || '', m.encrypted === true);
+      const updated = { ...m, draft: false, minutes: result, translatedTranscript: result.translatedTranscript || '' };
+      setSelectedMeeting(updated);
+      setPastMeetings(prev => prev.map(x => x.id === m.id ? updated : x));
+    } catch (err: any) {
+      setDraftError(err?.message || 'Error');
+    } finally {
+      setIsGeneratingDraft(false);
+    }
+  };
+
   const handleDeleteMeeting = async (meetingId: string) => {
     await meetingService.deleteMeeting(meetingId);
     setPastMeetings(prev => prev.filter(m => m.id !== meetingId));
@@ -307,10 +349,14 @@ const App: React.FC = () => {
     setKeyWarning(false);
     setLiveTranscript([]);
     setShowTranscript(false);
+    draftMeetingIdRef.current = null;
+    setDraftError(null);
     startRecording(audioSourceType);
   };
 
   const handleCancel = () => {
+    draftMeetingIdRef.current = null;
+    setDraftError(null);
     if (isSharing) stopSharing();
     cancelRecording();
     setLiveTranscript([]);
@@ -319,6 +365,8 @@ const App: React.FC = () => {
   };
 
   const handleReset = () => {
+    draftMeetingIdRef.current = null;
+    setDraftError(null);
     if (isSharing) stopSharing();
     reset();
     setLiveTranscript([]);
@@ -606,7 +654,30 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {showSelectedTranscript ? (
+            {selectedMeeting.draft && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                <div className="flex items-start gap-2.5 flex-1">
+                  <i className="fas fa-file-pen text-amber-500 mt-0.5"></i>
+                  <p className="text-amber-800 text-xs font-semibold leading-relaxed">{t.draftBanner}</p>
+                </div>
+                <button
+                  onClick={handleGenerateFromDraft}
+                  disabled={isGeneratingDraft}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-100 transition-colors disabled:opacity-60 shrink-0"
+                >
+                  {isGeneratingDraft
+                    ? <><i className="fas fa-spinner fa-spin mr-1.5"></i>{t.loading}</>
+                    : <><i className="fas fa-wand-magic-sparkles mr-1.5"></i>{t.generateMinutesNow}</>}
+                </button>
+              </div>
+            )}
+            {draftError && selectedMeeting.draft && (
+              <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                <p className="text-red-600 text-xs font-bold"><i className="fas fa-exclamation-circle mr-2"></i>{draftError}</p>
+              </div>
+            )}
+
+            {(showSelectedTranscript || selectedMeeting.draft) ? (
               <div className="animate-in fade-in duration-300">
                 {(selectedMeeting.transcriptText || selectedMeeting.translatedTranscript) ? (
                   <div className={`grid grid-cols-1 ${selectedMeeting.transcriptText && selectedMeeting.translatedTranscript ? 'md:grid-cols-2' : ''} gap-4`}>
