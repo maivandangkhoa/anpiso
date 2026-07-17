@@ -16,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-type SendState = 'idle' | 'sending' | 'success' | 'error';
+type SendState = 'idle' | 'sending' | 'success' | 'error' | 'copied';
 
 // Gửi trực tiếp qua Gmail API cần Google verify scope gmail.send (restricted).
 // Khi flag tắt: fallback mở mail client của user qua mailto (không cần scope nào).
@@ -113,15 +113,32 @@ const SendEmailDialog: React.FC<Props> = ({
 
     if (!GMAIL_DIRECT) {
       // Mở Gmail web soạn sẵn với đúng tài khoản đang đăng nhập app (authuser)
-      const params = new URLSearchParams({
-        view: 'cm',
-        fs: '1',
-        to: recipients.join(','),
-        su: subject,
-        body: textBody,
-        authuser: userEmail,
-      });
-      window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener');
+      const base = { view: 'cm', fs: '1', to: recipients.join(','), su: subject, authuser: userEmail };
+      const fullUrl = `https://mail.google.com/mail/?${new URLSearchParams({ ...base, body: textBody })}`;
+
+      // URL quá dài sẽ bị Gmail cắt → copy biên bản (kèm định dạng HTML) vào
+      // clipboard, mở compose trống và hướng dẫn user dán bằng Ctrl+V
+      if (fullUrl.length > 7500) {
+        try {
+          if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                'text/html': new Blob([htmlBody], { type: 'text/html' }),
+                'text/plain': new Blob([textBody], { type: 'text/plain' }),
+              }),
+            ]);
+          } else {
+            await navigator.clipboard.writeText(textBody);
+          }
+        } catch {
+          await navigator.clipboard.writeText(textBody).catch(() => {});
+        }
+        window.open(`https://mail.google.com/mail/?${new URLSearchParams(base)}`, '_blank', 'noopener');
+        setSendState('copied');
+        return;
+      }
+
+      window.open(fullUrl, '_blank', 'noopener');
       handleClose();
       return;
     }
@@ -161,7 +178,21 @@ const SendEmailDialog: React.FC<Props> = ({
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-8 animate-in zoom-in-95 duration-300">
 
-        {sendState === 'success' ? (
+        {sendState === 'copied' ? (
+          <div className="text-center">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-6">
+              <i className="fas fa-clipboard-check text-indigo-500 text-2xl"></i>
+            </div>
+            <h3 className="text-xl font-black text-slate-800 mb-2">{t.gmailCopiedTitle}</h3>
+            <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">{t.gmailCopiedDesc}</p>
+            <button
+              onClick={handleClose}
+              className="w-full py-3.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+            >
+              {t.close}
+            </button>
+          </div>
+        ) : sendState === 'success' ? (
           <div className="text-center">
             <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
               <i className="fas fa-check text-emerald-500 text-2xl"></i>
