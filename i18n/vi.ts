@@ -230,7 +230,6 @@ const vi = {
   sending: 'Đang gửi...',
   sendEmail: (count: number) => `Gửi email (${count})`,
   cannotSendEmail: 'Không thể gửi email',
-  gmailPendingNote: 'Gửi trực tiếp đang chờ Google xét duyệt — biên bản sẽ được soạn sẵn trong Gmail của bạn, chỉ việc bấm Gửi.',
   openMailApp: (count: number) => `Soạn trong Gmail (${count})`,
   gmailCopiedTitle: 'Đã sao chép biên bản',
   gmailCopiedDesc: 'Biên bản (kèm định dạng) đã được sao chép vào clipboard. Trong cửa sổ Gmail vừa mở, bấm Ctrl+V (Cmd+V trên Mac) để dán vào thư rồi Gửi.',

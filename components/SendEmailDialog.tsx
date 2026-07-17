@@ -285,14 +285,6 @@ const SendEmailDialog: React.FC<Props> = ({
               </div>
             )}
 
-            {!GMAIL_DIRECT && (
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 mb-4">
-                <p className="text-amber-700 text-[11px] font-semibold leading-relaxed">
-                  <i className="fas fa-circle-info mr-1.5"></i>{t.gmailPendingNote}
-                </p>
-              </div>
-            )}
-
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleSend}
