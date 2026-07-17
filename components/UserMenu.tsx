@@ -54,18 +54,6 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
             </div>
           </div>
 
-          {/* Cài đặt */}
-          <div className="p-2 border-b border-slate-100">
-            <button
-              onClick={() => { setIsOpen(false); setShowSettings(true); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-            >
-              <i className="fas fa-gear"></i>
-              {t.settingsMenu}
-              <i className="fas fa-chevron-right text-[9px] text-slate-300 ml-auto"></i>
-            </button>
-          </div>
-
           {/* Ngôn ngữ nhanh */}
           <div className="p-3 border-b border-slate-100">
             <div className="flex gap-1.5">
@@ -84,6 +72,18 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Cài đặt */}
+          <div className="p-2 border-b border-slate-100">
+            <button
+              onClick={() => { setIsOpen(false); setShowSettings(true); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+            >
+              <i className="fas fa-gear"></i>
+              {t.settingsMenu}
+              <i className="fas fa-chevron-right text-[9px] text-slate-300 ml-auto"></i>
+            </button>
           </div>
 
           {/* Logout */}
