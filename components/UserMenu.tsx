@@ -43,11 +43,10 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-slate-100 shadow-xl z-50 overflow-hidden">
-          {/* Tài khoản đang đăng nhập — chỉ email, avatar/tên đã có trên nút trigger */}
-          <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-[11px] text-slate-400 truncate">
-              <i className="fab fa-google text-[10px] mr-2"></i>{user.email}
-            </p>
+          {/* Tài khoản đang đăng nhập — avatar mini + email, không lặp lại tên */}
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2.5">
+            <img src={user.picture} alt="" className="w-6 h-6 rounded-full shrink-0" />
+            <p className="text-xs text-slate-500 font-medium truncate">{user.email}</p>
           </div>
 
           {/* Ngôn ngữ nhanh */}
