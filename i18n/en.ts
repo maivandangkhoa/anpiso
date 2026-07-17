@@ -66,8 +66,6 @@ const en: TranslationKeys = {
   driveAutoSave: 'Auto-save audio',
   driveSaveAudio: 'Save audio to Drive',
   geminiApiKeys: 'Gemini API Keys',
-  aiModel: 'AI Model',
-  aiModelHint: 'For transcription & minutes',
   usingDefaultKey: 'No key yet — add your Gemini key to start',
   needKeyToStart: 'Add a Gemini API key (top-right menu) before recording.',
   geminiSetupGuide: 'Get a free key',

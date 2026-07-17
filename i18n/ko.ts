@@ -66,8 +66,6 @@ const ko: TranslationKeys = {
   driveAutoSave: '오디오 자동 저장',
   driveSaveAudio: '오디오를 Drive에 저장',
   geminiApiKeys: 'Gemini API Keys',
-  aiModel: 'AI 모델',
-  aiModelHint: '전사 및 회의록용',
   usingDefaultKey: '키 없음 — Gemini 키를 추가하세요',
   needKeyToStart: '녹음 전에 Gemini API 키를 추가하세요 (오른쪽 상단 메뉴).',
   geminiSetupGuide: '무료 키 받기',

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { User, UserSettings } from '../types';
 import { apiKeyService } from '../services/apiKeyService';
 import { translateKeyService } from '../services/translateKeyService';
-import { modelService, AI_MODEL_OPTIONS } from '../services/modelService';
 import { useLocale, LOCALE_OPTIONS } from '../i18n';
 import EncryptionSettings from './EncryptionSettings';
 
@@ -25,20 +24,13 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
   const [gtKeySaved, setGtKeySaved] = useState(false);
   const [showGtSetup, setShowGtSetup] = useState(false);
   const [showGeminiSetup, setShowGeminiSetup] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(modelService.getModel());
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = apiKeyService.getKeys();
     setGeminiKeys(saved.length > 0 ? saved : ['']);
     setGtKeyDraft(translateKeyService.getKey());
-    setSelectedModel(modelService.getModel());
   }, []);
-
-  const selectModel = (model: string) => {
-    modelService.setModel(model);
-    setSelectedModel(model);
-  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -327,34 +319,6 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
                 <p className="mt-2 text-[10px] text-slate-500 leading-relaxed">{t.geminiFreeTierNote}</p>
               </div>
             )}
-          </div>
-
-          {/* AI Model selector (transcription + minutes) */}
-          <div className="p-4 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                <i className="fas fa-microchip text-indigo-500 text-sm"></i>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-700">{t.aiModel}</p>
-                <p className="text-[10px] text-slate-400">{t.aiModelHint}</p>
-              </div>
-            </div>
-            <div className="flex gap-1.5 mt-3">
-              {AI_MODEL_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => selectModel(opt.value)}
-                  className={`flex-1 py-2 rounded-lg text-[11px] font-semibold transition-all ${
-                    selectedModel === opt.value
-                      ? 'bg-indigo-100 text-indigo-600'
-                      : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Google Translate API Key */}

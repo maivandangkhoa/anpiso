@@ -64,8 +64,6 @@ const vi = {
   driveAutoSave: 'Tự động lưu audio',
   driveSaveAudio: 'Lưu audio lên Drive',
   geminiApiKeys: 'Gemini API Keys',
-  aiModel: 'Mô hình AI',
-  aiModelHint: 'Dùng cho bản ghi & biên bản',
   usingDefaultKey: 'Chưa có key — hãy thêm key Gemini để dùng',
   needKeyToStart: 'Hãy thêm Gemini API key (menu góc trên phải) trước khi ghi âm.',
   geminiSetupGuide: 'Hướng dẫn lấy key miễn phí',
