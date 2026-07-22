@@ -1,7 +1,7 @@
 
 const vi = {
   // Header
-  headerTitle: 'Trợ lý họp AI của bạn',
+  headerTitle: 'Trợ lý AI cho mọi cuộc họp',
   headerSubtitle: 'Ghi âm, tóm tắt & dịch cuộc họp bằng AI',
 
   // Login

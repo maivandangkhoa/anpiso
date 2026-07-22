@@ -3,7 +3,7 @@ import type { TranslationKeys } from './vi';
 
 const ko: TranslationKeys = {
   // Header
-  headerTitle: '당신의 AI 회의 어시스턴트',
+  headerTitle: 'AI 회의 비서',
   headerSubtitle: 'AI로 회의 녹음 · 요약 · 번역',
 
   // Login
