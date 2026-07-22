@@ -26,24 +26,29 @@ export const replaceSpeakerInText = (text: string, token: string, to: string): s
   return text.replace(new RegExp(escapeRegExp(token) + guard, 'g'), to);
 };
 
-/** Áp dụng đổi tên lên mọi field text của biên bản, trả về object mới (immutable). */
+/**
+ * Áp dụng đổi tên lên mọi field text của biên bản, trả về object mới (immutable).
+ * QUAN TRỌNG: KHÔNG chèn key `undefined` cho các field optional vắng mặt —
+ * Firestore updateDoc ném lỗi khi gặp `undefined` → cả lệnh ghi bị reject.
+ * `...m` đã copy đúng các key hiện có; chỉ override field optional khi nó tồn tại.
+ */
 export const renameSpeakerInMinutes = (
   m: MeetingMinutes,
   token: string,
   to: string
 ): MeetingMinutes => {
   const r = (s: string): string => replaceSpeakerInText(s, token, to);
-  const ro = (s?: string): string | undefined => (s == null ? s : r(s));
-  return {
+  const out: MeetingMinutes = {
     ...m,
     participants: m.participants.map(r),
-    purpose: ro(m.purpose),
-    discussion: m.discussion?.map(d => ({ topic: r(d.topic), content: r(d.content) })),
-    decisions: m.decisions?.map(r),
-    openIssues: m.openIssues?.map(r),
-    summary: ro(m.summary),
     shortSummary: r(m.shortSummary),
     actionItems: m.actionItems.map(a => ({ ...a, task: r(a.task), pic: r(a.pic) })),
     translatedTranscript: r(m.translatedTranscript || ''),
   };
+  if (m.purpose != null) out.purpose = r(m.purpose);
+  if (m.summary != null) out.summary = r(m.summary);
+  if (m.discussion) out.discussion = m.discussion.map(d => ({ topic: r(d.topic), content: r(d.content) }));
+  if (m.decisions) out.decisions = m.decisions.map(r);
+  if (m.openIssues) out.openIssues = m.openIssues.map(r);
+  return out;
 };

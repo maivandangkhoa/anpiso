@@ -192,8 +192,9 @@ export const meetingService = {
       });
       return;
     }
+    // JSON round-trip loại bỏ mọi `undefined` — Firestore updateDoc reject nếu gặp undefined.
     await updateDoc(docRef, {
-      minutes,
+      minutes: JSON.parse(JSON.stringify(minutes)),
       updatedAt: serverTimestamp(),
     });
   },
