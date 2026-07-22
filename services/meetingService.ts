@@ -181,7 +181,11 @@ export const meetingService = {
 
   async updateMinutes(meetingId: string, minutes: MeetingMinutes, encrypted: boolean = false): Promise<void> {
     const docRef = doc(db, MEETINGS_COLLECTION, meetingId);
-    if (encrypted && cryptoService.isEnabled() && await cryptoService.hasKey()) {
+    // Doc đã mã hoá thì PHẢI ghi tiếp dạng mã hoá miễn còn khoá — KHÔNG phụ thuộc cờ
+    // isEnabled() hiện tại (user có thể đã tắt E2EE nhưng doc cũ vẫn encrypted).
+    // Ghi plaintext lên doc encrypted = mất dữ liệu (khi đọc chỉ giải mã minutesEnc).
+    if (encrypted) {
+      if (!await cryptoService.hasKey()) throw new Error('Missing E2EE key: cannot update encrypted meeting');
       await updateDoc(docRef, {
         minutesEnc: await cryptoService.encryptString(JSON.stringify(minutes)),
         updatedAt: serverTimestamp(),
@@ -197,7 +201,8 @@ export const meetingService = {
   /** Cập nhật riêng bản dịch transcript (E2EE-aware) — dùng khi đổi tên speaker. */
   async updateTranslated(meetingId: string, translatedTranscript: string, encrypted: boolean = false): Promise<void> {
     const patch: any = { updatedAt: serverTimestamp() };
-    if (encrypted && cryptoService.isEnabled() && await cryptoService.hasKey()) {
+    if (encrypted) {
+      if (!await cryptoService.hasKey()) throw new Error('Missing E2EE key: cannot update encrypted meeting');
       patch.translatedEnc = await cryptoService.encryptString(translatedTranscript || '');
     } else {
       patch.translatedTranscript = translatedTranscript || '';
@@ -208,7 +213,8 @@ export const meetingService = {
   /** Thay transcript bằng bản gỡ băng HQ mới (E2EE-aware), đánh dấu nguồn 'hq'. */
   async updateTranscript(meetingId: string, transcriptText: string, encrypted: boolean = false): Promise<void> {
     const patch: any = { transcriptSource: 'hq', updatedAt: serverTimestamp() };
-    if (encrypted && cryptoService.isEnabled() && await cryptoService.hasKey()) {
+    if (encrypted) {
+      if (!await cryptoService.hasKey()) throw new Error('Missing E2EE key: cannot update encrypted meeting');
       patch.transcriptEnc = await cryptoService.encryptString(transcriptText || '');
     } else {
       patch.transcriptText = transcriptText;
