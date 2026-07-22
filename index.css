@@ -56,8 +56,16 @@ body {
     50% { transform: scaleY(1); }
 }
 .eq-soft { animation: eq-soft 1.8s ease-in-out infinite; transform-origin: center; }
+/* Wordmark "Anpiso": gradient blue→indigo trôi nhẹ */
+@keyframes brand-shimmer {
+    to { background-position: -200% center; }
+}
+.brand-shimmer {
+    background-size: 200% auto;
+    animation: brand-shimmer 6s linear infinite;
+}
 @media (prefers-reduced-motion: reduce) {
-    .animate-breathe, .animate-breathe-delayed, .eq-soft { animation: none; }
+    .animate-breathe, .animate-breathe-delayed, .eq-soft, .brand-shimmer { animation: none; }
 }
 
 /* Landing "sổ tay thư ký": typography editorial + bút dạ quang */
