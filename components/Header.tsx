@@ -13,7 +13,7 @@ const Header: React.FC = () => {
           className="w-9 h-9 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl border border-slate-100 shadow-md shadow-slate-200 shrink-0"
         />
         <div className="min-w-0">
-          <h1 className="text-base sm:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight truncate">{t.loginTitle}</h1>
+          <h1 className="text-lg sm:text-3xl font-extrabold tracking-tight leading-tight truncate bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">{t.loginTitle}</h1>
           <p className="text-[10px] sm:text-sm text-slate-400 font-medium leading-tight truncate">{t.headerTitle}</p>
         </div>
       </div>
