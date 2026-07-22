@@ -184,6 +184,8 @@ const vi = {
   newTask: 'Nhiệm vụ mới...',
   enterSummary: 'Nhập tóm tắt nội dung...',
   addPerson: '+ Thêm người...',
+  renameParticipant: 'Đổi tên ở mọi nơi',
+  renamePlaceholder: 'Tên / chức danh mới',
   taskDesc: 'Mô tả công việc...',
   whoDoesIt: 'Ai làm?',
   noActionsRecorded: 'Không có hành động nào được ghi lại.',

@@ -194,6 +194,17 @@ export const meetingService = {
     });
   },
 
+  /** Cập nhật riêng bản dịch transcript (E2EE-aware) — dùng khi đổi tên speaker. */
+  async updateTranslated(meetingId: string, translatedTranscript: string, encrypted: boolean = false): Promise<void> {
+    const patch: any = { updatedAt: serverTimestamp() };
+    if (encrypted && cryptoService.isEnabled() && await cryptoService.hasKey()) {
+      patch.translatedEnc = await cryptoService.encryptString(translatedTranscript || '');
+    } else {
+      patch.translatedTranscript = translatedTranscript || '';
+    }
+    await updateDoc(doc(db, MEETINGS_COLLECTION, meetingId), patch);
+  },
+
   /** Thay transcript bằng bản gỡ băng HQ mới (E2EE-aware), đánh dấu nguồn 'hq'. */
   async updateTranscript(meetingId: string, transcriptText: string, encrypted: boolean = false): Promise<void> {
     const patch: any = { transcriptSource: 'hq', updatedAt: serverTimestamp() };

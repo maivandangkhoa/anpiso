@@ -400,8 +400,8 @@ export const useMeetingRecorder = (
   };
 
   return {
-    status, minutes, errorMessage, isProcessingSegment, hqSegments,
-    fullTranslatedTranscript, isTranslatingFull, recordedBlob, elapsedTime,
+    status, minutes, setMinutes, errorMessage, isProcessingSegment, hqSegments,
+    fullTranslatedTranscript, setFullTranslatedTranscript, isTranslatingFull, recordedBlob, elapsedTime,
     micMuted, micAvailable, toggleMic,
     hasPendingMinutes, retryMinutes, transcriptSource,
     startRecording, stopRecording, cancelRecording, reset

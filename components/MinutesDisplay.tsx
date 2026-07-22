@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MeetingMinutes, TranscriptLine, ActionItem } from '../types';
 import { useLocale } from '../i18n';
 import MinutesSections from './MinutesSections';
+import { speakerToken, renameSpeakerInMinutes } from '../utils/renameSpeaker';
 
 interface Props {
   minutes: MeetingMinutes;
@@ -15,6 +16,8 @@ interface Props {
   translatedTranscript: string;
   isTranslating: boolean;
   readOnly?: boolean;
+  /** Đổi tên speaker cũng lan sang bản dịch transcript (được lưu tách khỏi minutes). */
+  onRenameTranscript?: (token: string, to: string) => void;
 }
 
 const MinutesDisplay: React.FC<Props> = ({
@@ -26,12 +29,15 @@ const MinutesDisplay: React.FC<Props> = ({
   onViewTranscript,
   translatedTranscript,
   isTranslating,
-  readOnly
+  readOnly,
+  onRenameTranscript
 }) => {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [localMinutes, setLocalMinutes] = useState<MeetingMinutes>(initialMinutes);
   const [newParticipant, setNewParticipant] = useState("");
+  const [renamingIdx, setRenamingIdx] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const DEFAULT_TASK = t.newTask;
   const DEFAULT_PIC = "PIC";
@@ -88,6 +94,29 @@ const MinutesDisplay: React.FC<Props> = ({
 
   const removeParticipant = (index: number) => {
     updateField('participants', localMinutes.participants.filter((_, i) => i !== index));
+  };
+
+  const startRename = (index: number) => {
+    setRenamingIdx(index);
+    setRenameValue("");
+  };
+
+  const cancelRename = () => {
+    setRenamingIdx(null);
+    setRenameValue("");
+  };
+
+  // Đổi tên speaker → thay token ở TOÀN BỘ biên bản + lan sang bản dịch transcript.
+  const commitRename = (index: number) => {
+    const token = speakerToken(localMinutes.participants[index] || "");
+    const to = renameValue.trim();
+    if (token && to && token !== to) {
+      const next = renameSpeakerInMinutes(localMinutes, token, to);
+      setLocalMinutes(next);
+      onSave?.(next);
+      onRenameTranscript?.(token, to);
+    }
+    cancelRename();
   };
 
 
@@ -195,17 +224,48 @@ const MinutesDisplay: React.FC<Props> = ({
               <div className="flex flex-wrap gap-2.5">
                 {localMinutes.participants.map((p, idx) => (
                   <div key={idx} className="group relative">
-                    <span className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs sm:text-sm font-bold border border-indigo-100/50 flex items-center">
-                      {p}
-                      {isEditing && (
-                        <button 
-                          onClick={() => removeParticipant(idx)}
-                          className="ml-2 hover:text-red-500 transition-colors"
-                        >
-                          <i className="fas fa-times-circle"></i>
+                    {isEditing && renamingIdx === idx ? (
+                      <form
+                        onSubmit={(e) => { e.preventDefault(); commitRename(idx); }}
+                        className="flex items-center gap-1 px-2 py-1 bg-white rounded-xl border border-indigo-300"
+                      >
+                        <input
+                          autoFocus
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Escape') cancelRename(); }}
+                          placeholder={speakerToken(p) || t.renamePlaceholder}
+                          className="px-2 py-1 bg-transparent border-none text-xs sm:text-sm font-bold text-indigo-700 focus:outline-none w-36 placeholder:text-indigo-300 placeholder:font-normal"
+                        />
+                        <button type="submit" className="text-emerald-600 hover:text-emerald-700 px-1" title={t.save}>
+                          <i className="fas fa-check text-xs"></i>
                         </button>
-                      )}
-                    </span>
+                        <button type="button" onClick={cancelRename} className="text-slate-400 hover:text-slate-600 px-1">
+                          <i className="fas fa-times text-xs"></i>
+                        </button>
+                      </form>
+                    ) : (
+                      <span className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs sm:text-sm font-bold border border-indigo-100/50 flex items-center">
+                        {p}
+                        {isEditing && (
+                          <>
+                            <button
+                              onClick={() => startRename(idx)}
+                              className="ml-2 text-indigo-300 hover:text-indigo-600 transition-colors"
+                              title={t.renameParticipant}
+                            >
+                              <i className="fas fa-pen text-[10px]"></i>
+                            </button>
+                            <button
+                              onClick={() => removeParticipant(idx)}
+                              className="ml-1.5 hover:text-red-500 transition-colors"
+                            >
+                              <i className="fas fa-times-circle"></i>
+                            </button>
+                          </>
+                        )}
+                      </span>
+                    )}
                   </div>
                 ))}
                 {isEditing && (

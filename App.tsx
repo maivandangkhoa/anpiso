@@ -8,6 +8,7 @@ import { meetingService } from './services/meetingService';
 import { userSettingsService } from './services/userSettingsService';
 import { driveService } from './services/driveService';
 import { apiKeyService } from './services/apiKeyService';
+import { replaceSpeakerInText } from './utils/renameSpeaker';
 import { RecordingStatus, AudioSource, MeetingMinutes, User, UserSettings, DriveLinks, SttEngine, WebSpeechLang, TargetLanguage, AppMode } from './types';
 import { useAISession } from './hooks/useAISession';
 import { useWebSpeechSession } from './hooks/useWebSpeechSession';
@@ -158,10 +159,12 @@ const App: React.FC = () => {
   const {
     status,
     minutes,
+    setMinutes,
     errorMessage,
     isProcessingSegment,
     hqSegments,
     fullTranslatedTranscript,
+    setFullTranslatedTranscript,
     isTranslatingFull,
     recordedBlob,
     elapsedTime,
@@ -828,6 +831,14 @@ const App: React.FC = () => {
                   );
                 }}
                 onReset={() => setSelectedMeeting(null)}
+                onRenameTranscript={(token, to) => {
+                  const nextT = replaceSpeakerInText(selectedMeeting.translatedTranscript || '', token, to);
+                  setSelectedMeeting(prev => prev ? { ...prev, translatedTranscript: nextT } : prev);
+                  setPastMeetings(prev => prev.map(m => m.id === selectedMeeting.id ? { ...m, translatedTranscript: nextT } : m));
+                  meetingService.updateTranslated(selectedMeeting.id, nextT, selectedMeeting.encrypted === true).catch(err =>
+                    console.error('Failed to update translated transcript:', err)
+                  );
+                }}
                 transcriptText={selectedMeeting.transcriptText || ''}
                 onViewTranscript={() => setShowSelectedTranscript(true)}
                 liveTranscript={[]}
@@ -916,6 +927,8 @@ const App: React.FC = () => {
                   minutes={minutes}
                   onSendEmail={handleSendEmail}
                   onSave={(updated) => {
+                    // Sync state cha để không mất chỉnh sửa khi remount (vd chuyển qua/lại transcript)
+                    setMinutes(updated);
                     if (savedMeetingIdRef.current) {
                       meetingService.updateMinutes(savedMeetingIdRef.current, updated, cryptoService.isEnabled()).catch(err =>
                         console.error('Failed to update minutes:', err)
@@ -923,6 +936,16 @@ const App: React.FC = () => {
                     }
                   }}
                   onReset={handleReset}
+                  onRenameTranscript={(token, to) => {
+                    // onSave đã lo phần minutes; ở đây chỉ lan sang bản dịch transcript (lưu tách riêng)
+                    const nextT = replaceSpeakerInText(fullTranslatedTranscript || '', token, to);
+                    setFullTranslatedTranscript(nextT);
+                    if (savedMeetingIdRef.current) {
+                      meetingService.updateTranslated(savedMeetingIdRef.current, nextT, cryptoService.isEnabled()).catch(err =>
+                        console.error('Failed to update translated transcript:', err)
+                      );
+                    }
+                  }}
                   transcriptText={hqSegments.join("\n\n---\n\n")}
                   onViewTranscript={() => setShowTranscript(true)}
                   liveTranscript={liveTranscript}

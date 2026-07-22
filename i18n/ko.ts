@@ -186,6 +186,8 @@ const ko: TranslationKeys = {
   newTask: '새 작업...',
   enterSummary: '요약을 입력하세요...',
   addPerson: '+ 참석자 추가...',
+  renameParticipant: '전체 이름 변경',
+  renamePlaceholder: '새 이름 / 직책',
   taskDesc: '작업 설명...',
   whoDoesIt: '담당자?',
   noActionsRecorded: '기록된 액션 항목이 없습니다.',

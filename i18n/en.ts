@@ -186,6 +186,8 @@ const en: TranslationKeys = {
   newTask: 'New task...',
   enterSummary: 'Enter summary...',
   addPerson: '+ Add person...',
+  renameParticipant: 'Rename everywhere',
+  renamePlaceholder: 'New name / role',
   taskDesc: 'Task description...',
   whoDoesIt: 'Assignee?',
   noActionsRecorded: 'No action items recorded.',
