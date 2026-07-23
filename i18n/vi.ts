@@ -57,7 +57,7 @@ const vi = {
   landingVigMeeting2Meta: 'Hôm qua · song ngữ Hàn – Việt',
   landingVigReady: 'Biên bản đã sẵn sàng — gửi email?',
   landingVigNote: '5 việc cần làm ✓',
-  landingVigArrow: 'biên bản tự viết!',
+  landingVigArrow: 'Anpiso viết biên bản!',
 
   // UserMenu
   googleDrive: 'Google Drive',
