@@ -69,7 +69,7 @@ const ko: TranslationKeys = {
   usingDefaultKey: '키 없음 — Gemini 키를 추가하세요',
   needKeyToStart: '녹음하려면 Gemini API 키가 필요합니다 — 여기를 눌러 추가하세요.',
   geminiSetupGuide: '무료 키 받는 방법',
-  geminiStep1: 'Google AI Studio에 접속하여 Google 계정으로 로그인',
+  geminiStep1: '여기를 클릭해 Google AI Studio에 접속하고 Google 계정으로 로그인',
   geminiStep2: '"Create API key" 클릭 — 무료, 신용카드 불필요',
   geminiStep3: '키("AIza..."로 시작) 복사 후 위 입력란에 붙여넣기',
   geminiFreeTierNote: '무료 티어는 일일 요청 제한이 있습니다. 라이브 번역 시 한도에 도달하지 않도록 아래에 Google Translate 키를 추가하세요 (월 500k자 무료).',

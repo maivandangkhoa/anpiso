@@ -67,7 +67,7 @@ const vi = {
   usingDefaultKey: 'Chưa có key — hãy thêm key Gemini để dùng',
   needKeyToStart: 'Nhấn vào đây để thêm Gemini API key trước khi ghi âm.',
   geminiSetupGuide: 'Hướng dẫn lấy key miễn phí',
-  geminiStep1: 'Mở Google AI Studio và đăng nhập bằng tài khoản Google',
+  geminiStep1: 'Click vào đây để mở Google AI Studio và đăng nhập bằng tài khoản Google',
   geminiStep2: 'Bấm "Create API key" — miễn phí, không cần thẻ tín dụng',
   geminiStep3: 'Copy key (bắt đầu với "AIza...") và dán vào ô bên trên',
   geminiFreeTierNote: 'Free tier có giới hạn requests/ngày. Để tránh hết quota khi dịch live, hãy thêm Google Translate Key bên dưới (500k ký tự/tháng miễn phí).',
