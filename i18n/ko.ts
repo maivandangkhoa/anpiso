@@ -67,7 +67,7 @@ const ko: TranslationKeys = {
   driveSaveAudio: '오디오를 Drive에 저장',
   geminiApiKeys: 'Gemini API Keys',
   usingDefaultKey: '키 없음 — Gemini 키를 추가하세요',
-  needKeyToStart: '녹음 전에 Gemini API 키를 추가하세요 (오른쪽 상단 메뉴).',
+  needKeyToStart: '녹음하려면 Gemini API 키가 필요합니다 — 여기를 눌러 추가하세요.',
   geminiSetupGuide: '무료 키 받기',
   geminiStep1: 'Google AI Studio에 접속하여 Google 계정으로 로그인',
   geminiStep2: '"Create API key" 클릭 — 무료, 신용카드 불필요',

@@ -1,21 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, UserSettings } from '../types';
+import { User } from '../types';
 import { useLocale, LOCALE_OPTIONS } from '../i18n';
-import SettingsDialog from './SettingsDialog';
 
 interface Props {
   user: User;
-  userSettings: UserSettings;
-  isDriveAuthorizing: boolean;
-  onToggleDrive: () => void;
+  onOpenSettings: () => void;
   onLogout: () => void;
 }
 
 /** Menu tài khoản gọn: profile + Cài đặt (mở dialog) + ngôn ngữ + đăng xuất. */
-const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLogout }: Props) => {
+const UserMenu = ({ user, onOpenSettings, onLogout }: Props) => {
   const { t, locale, setLocale } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,7 +68,7 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
           {/* Cài đặt */}
           <div className="p-2 border-b border-slate-100">
             <button
-              onClick={() => { setIsOpen(false); setShowSettings(true); }}
+              onClick={() => { setIsOpen(false); onOpenSettings(); }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
             >
               <i className="fas fa-gear"></i>
@@ -93,14 +89,6 @@ const UserMenu = ({ user, userSettings, isDriveAuthorizing, onToggleDrive, onLog
           </div>
         </div>
       )}
-
-      <SettingsDialog
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        userSettings={userSettings}
-        isDriveAuthorizing={isDriveAuthorizing}
-        onToggleDrive={onToggleDrive}
-      />
     </div>
   );
 };

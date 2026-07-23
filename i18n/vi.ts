@@ -65,7 +65,7 @@ const vi = {
   driveSaveAudio: 'Lưu audio lên Drive',
   geminiApiKeys: 'Gemini API Keys',
   usingDefaultKey: 'Chưa có key — hãy thêm key Gemini để dùng',
-  needKeyToStart: 'Hãy thêm Gemini API key (menu góc trên phải) trước khi ghi âm.',
+  needKeyToStart: 'Nhấn vào đây để thêm Gemini API key trước khi ghi âm.',
   geminiSetupGuide: 'Hướng dẫn lấy key miễn phí',
   geminiStep1: 'Mở Google AI Studio và đăng nhập bằng tài khoản Google',
   geminiStep2: 'Bấm "Create API key" — miễn phí, không cần thẻ tín dụng',

@@ -12,10 +12,12 @@ interface Props {
   userSettings: UserSettings;
   isDriveAuthorizing: boolean;
   onToggleDrive: () => void;
+  /** Tab mở sẵn khi bật dialog (vd banner "thiếu key" mở thẳng tab API Keys). */
+  initialTab?: 'general' | 'keys';
 }
 
 /** Trung tâm cài đặt: modal giữa màn hình trên desktop, full-screen sheet trên mobile. */
-const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onToggleDrive }: Props) => {
+const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onToggleDrive, initialTab = 'general' }: Props) => {
   const { t } = useLocale();
   const [geminiKeys, setGeminiKeys] = useState<string[]>([]);
   const [showKeys, setShowKeys] = useState(false);
@@ -25,14 +27,15 @@ const SettingsDialog = ({ isOpen, onClose, userSettings, isDriveAuthorizing, onT
   const [gtKeySaved, setGtKeySaved] = useState(false);
   const [showGtSetup, setShowGtSetup] = useState(false);
   const [showGeminiSetup, setShowGeminiSetup] = useState(false);
-  const [tab, setTab] = useState<'general' | 'keys'>('general');
+  const [tab, setTab] = useState<'general' | 'keys'>(initialTab);
 
   useEffect(() => {
     if (!isOpen) return;
+    setTab(initialTab); // mỗi lần mở → về tab được yêu cầu
     const saved = apiKeyService.getKeys();
     setGeminiKeys(saved.length > 0 ? saved : ['']);
     setGtKeyDraft(translateKeyService.getKey());
-  }, [isOpen]);
+  }, [isOpen, initialTab]);
 
   // Poll error version to re-render when keys fail at runtime
   const [, setErrorTick] = useState(0);

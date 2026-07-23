@@ -25,6 +25,7 @@ import ShareButton from './components/ShareButton';
 import MeetingHistory from './components/MeetingHistory';
 import SendEmailDialog from './components/SendEmailDialog';
 import UserMenu from './components/UserMenu';
+import SettingsDialog from './components/SettingsDialog';
 import ErrorDisplay from './components/ErrorDisplay';
 import CopyButton from './components/CopyButton';
 import { useHostSharing } from './hooks/useHostSharing';
@@ -48,6 +49,9 @@ const App: React.FC = () => {
   const translationEnabled = appMode === 'interpret';
   const [showTranscript, setShowTranscript] = useState<boolean>(false);
   const [keyWarning, setKeyWarning] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<'general' | 'keys'>('general');
+  const openSettings = (tab: 'general' | 'keys' = 'general') => { setSettingsTab(tab); setSettingsOpen(true); };
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   
@@ -632,20 +636,31 @@ const App: React.FC = () => {
           <Header />
           <UserMenu
             user={user}
-            userSettings={userSettings}
-            isDriveAuthorizing={isDriveAuthorizing}
-            onToggleDrive={handleToggleDrive}
+            onOpenSettings={() => openSettings('general')}
             onLogout={handleLogout}
           />
         </div>
 
+        <SettingsDialog
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          userSettings={userSettings}
+          isDriveAuthorizing={isDriveAuthorizing}
+          onToggleDrive={handleToggleDrive}
+          initialTab={settingsTab}
+        />
+
         {status === RecordingStatus.IDLE && !selectedMeeting && (
           <div className="flex-1 overflow-y-auto hide-scrollbar space-y-6">
             {keyWarning && (
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm">
+              <button
+                onClick={() => openSettings('keys')}
+                className="w-full flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm text-left hover:bg-amber-100 transition-colors group"
+              >
                 <i className="fas fa-key mt-0.5"></i>
-                <span>{t.needKeyToStart}</span>
-              </div>
+                <span className="flex-1">{t.needKeyToStart}</span>
+                <i className="fas fa-arrow-right mt-0.5 opacity-50 group-hover:translate-x-0.5 transition-transform"></i>
+              </button>
             )}
             <RecorderControls
               status={status}
