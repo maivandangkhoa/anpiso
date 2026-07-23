@@ -43,7 +43,8 @@ const App: React.FC = () => {
   });
   const setAudioSourceType = (v: AudioSource) => { _setAudioSourceType(v); localStorage.setItem('pref_audioSource', v); };
   const [appMode, _setAppMode] = useState<AppMode>(
-    () => (localStorage.getItem('pref_appMode') as AppMode) || 'interpret'
+    // Default người dùng mới: 'notes' = None (Record only); bật dịch khi cần
+    () => (localStorage.getItem('pref_appMode') as AppMode) || 'notes'
   );
   const setAppMode = (v: AppMode) => { _setAppMode(v); localStorage.setItem('pref_appMode', v); };
   const translationEnabled = appMode === 'interpret';
