@@ -77,7 +77,7 @@ const ko: TranslationKeys = {
   gtKeyHint: 'GT 우선 사용 · 월 500k자 무료',
   gtKeyNotConfigured: '설정 안됨 · Gemini 사용 중',
   gtPlaceholder: 'AIza... (Google Translate API 키 붙여넣기)',
-  gtSetupGuide: '설정 가이드',
+  gtSetupGuide: '무료 키 받는 방법',
   gtStep1: 'Google Cloud Console에서 Cloud Translation API 활성화',
   gtStep2: '새 API 키 생성 (Credentials → Create credentials → API key)',
   gtStep3: '애플리케이션 제한: HTTP 리퍼러 — 앱 도메인 + http://localhost:3000/* 추가',

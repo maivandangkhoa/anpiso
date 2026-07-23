@@ -75,7 +75,7 @@ const vi = {
   gtKeyHint: 'Đang ưu tiên dùng GT · 500k ký tự/tháng miễn phí',
   gtKeyNotConfigured: 'Chưa cấu hình · đang dùng Gemini',
   gtPlaceholder: 'AIza... (dán Google Translate API key)',
-  gtSetupGuide: 'Hướng dẫn thiết lập',
+  gtSetupGuide: 'Hướng dẫn lấy key miễn phí',
   gtStep1: 'Bật Cloud Translation API trong Google Cloud Console',
   gtStep2: 'Tạo API key mới (Credentials → Create credentials → API key)',
   gtStep3: 'Application restriction: HTTP referrers — thêm domain app + http://localhost:3000/*',

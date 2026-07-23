@@ -77,7 +77,7 @@ const en: TranslationKeys = {
   gtKeyHint: 'GT prioritized · 500k chars/month free',
   gtKeyNotConfigured: 'Not configured · using Gemini',
   gtPlaceholder: 'AIza... (paste Google Translate API key)',
-  gtSetupGuide: 'Setup guide',
+  gtSetupGuide: 'How to get a free key',
   gtStep1: 'Enable Cloud Translation API in Google Cloud Console',
   gtStep2: 'Create a new API key (Credentials → Create credentials → API key)',
   gtStep3: 'Application restriction: HTTP referrers — add app domain + http://localhost:3000/*',
