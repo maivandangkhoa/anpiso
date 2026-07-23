@@ -582,7 +582,7 @@ const App: React.FC = () => {
       const accessToken = await new Promise<string>((resolve, reject) => {
         const client = google.accounts.oauth2.initCodeClient({
           client_id: clientId,
-          scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata',
+          scope: 'https://www.googleapis.com/auth/drive.file',
           ux_mode: 'popup',
           callback: async (response: google.accounts.oauth2.CodeResponse) => {
             if (response.error) {

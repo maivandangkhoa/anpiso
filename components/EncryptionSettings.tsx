@@ -6,7 +6,8 @@ import { refreshDriveTokenFn } from '../services/firebase';
 import { UserSettings } from '../types';
 import { useLocale } from '../i18n';
 
-const KEY_BACKUP_FILE = 'anpiso-e2ee-key.txt';
+// Hiện trong Drive user (scope drive.file) → tên rõ để họ không xoá/chia sẻ nhầm
+const KEY_BACKUP_FILE = 'Anpiso-E2EE-Key-DO-NOT-SHARE.txt';
 
 interface Props {
   userSettings: UserSettings;
@@ -98,10 +99,10 @@ const EncryptionSettings: React.FC<Props> = ({ userSettings }) => {
     setBusy(true);
     try {
       const keyString = await cryptoService.exportKeyString();
-      await driveService.saveAppDataFile(await getDriveToken(), KEY_BACKUP_FILE, keyString);
+      await driveService.saveKeyBackup(await getDriveToken(), KEY_BACKUP_FILE, keyString);
       flash(t.e2eeKeyBackedUp);
     } catch (err: any) {
-      flash(err?.message === 'SCOPE_MISSING' ? t.e2eeDriveReauth : (err?.message || 'Error'), true);
+      flash(err?.message || 'Error', true);
     } finally {
       setBusy(false);
     }
@@ -110,7 +111,7 @@ const EncryptionSettings: React.FC<Props> = ({ userSettings }) => {
   const restoreFromDrive = async () => {
     setBusy(true);
     try {
-      const content = await driveService.loadAppDataFile(await getDriveToken(), KEY_BACKUP_FILE);
+      const content = await driveService.loadKeyBackup(await getDriveToken(), KEY_BACKUP_FILE);
       if (!content) {
         flash(t.e2eeNoBackupFound, true);
         return;
@@ -119,8 +120,8 @@ const EncryptionSettings: React.FC<Props> = ({ userSettings }) => {
       setEnabled(true);
       refreshFingerprint();
       flash(t.e2eeKeyRestored);
-    } catch (err: any) {
-      flash(err?.message === 'SCOPE_MISSING' ? t.e2eeDriveReauth : t.e2eeInvalidKeyFile, true);
+    } catch {
+      flash(t.e2eeInvalidKeyFile, true);
     } finally {
       setBusy(false);
     }

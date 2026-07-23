@@ -114,21 +114,20 @@ export const driveService = {
   },
 
   /**
-   * Lưu file vào appDataFolder (vùng ẩn riêng của app trên Drive user) — dùng
-   * backup chìa khoá E2EE. Cần scope drive.appdata; token cũ thiếu scope → 403.
+   * Backup chìa khoá E2EE thành 1 file trên Drive user qua scope drive.file
+   * (non-sensitive — tránh drive.appdata sensitive phải qua Google verify).
+   * File hiện trong Drive user; app chỉ truy cập được file do chính nó tạo.
    */
-  async saveAppDataFile(accessToken: string, fileName: string, content: string): Promise<void> {
+  async saveKeyBackup(accessToken: string, fileName: string, content: string): Promise<void> {
     const searchParams = new URLSearchParams({
       q: `name='${fileName}' and trashed=false`,
-      spaces: 'appDataFolder',
       fields: 'files(id)',
     });
     const searchRes = await fetch(`${DRIVE_API}/files?${searchParams}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (searchRes.status === 401) throw new Error('TOKEN_EXPIRED');
-    if (searchRes.status === 403) throw new Error('SCOPE_MISSING');
-    if (!searchRes.ok) throw new Error(`Drive appdata search error: ${searchRes.status}`);
+    if (!searchRes.ok) throw new Error(`Drive key search error: ${searchRes.status}`);
     const existing = (await searchRes.json()).files?.[0]?.id;
 
     let res: Response;
@@ -140,7 +139,7 @@ export const driveService = {
       });
     } else {
       const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify({ name: fileName, parents: ['appDataFolder'] })], { type: 'application/json' }));
+      form.append('metadata', new Blob([JSON.stringify({ name: fileName })], { type: 'application/json' }));
       form.append('file', new Blob([content], { type: 'text/plain' }));
       res = await fetch(`${DRIVE_UPLOAD_API}/files?uploadType=multipart`, {
         method: 'POST',
@@ -149,22 +148,19 @@ export const driveService = {
       });
     }
     if (res.status === 401) throw new Error('TOKEN_EXPIRED');
-    if (res.status === 403) throw new Error('SCOPE_MISSING');
-    if (!res.ok) throw new Error(`Drive appdata save error: ${res.status}`);
+    if (!res.ok) throw new Error(`Drive key save error: ${res.status}`);
   },
 
-  async loadAppDataFile(accessToken: string, fileName: string): Promise<string | null> {
+  async loadKeyBackup(accessToken: string, fileName: string): Promise<string | null> {
     const searchParams = new URLSearchParams({
       q: `name='${fileName}' and trashed=false`,
-      spaces: 'appDataFolder',
       fields: 'files(id)',
     });
     const searchRes = await fetch(`${DRIVE_API}/files?${searchParams}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (searchRes.status === 401) throw new Error('TOKEN_EXPIRED');
-    if (searchRes.status === 403) throw new Error('SCOPE_MISSING');
-    if (!searchRes.ok) throw new Error(`Drive appdata search error: ${searchRes.status}`);
+    if (!searchRes.ok) throw new Error(`Drive key search error: ${searchRes.status}`);
     const fileId = (await searchRes.json()).files?.[0]?.id;
     if (!fileId) return null;
 
@@ -172,7 +168,7 @@ export const driveService = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (res.status === 401) throw new Error('TOKEN_EXPIRED');
-    if (!res.ok) throw new Error(`Drive appdata load error: ${res.status}`);
+    if (!res.ok) throw new Error(`Drive key load error: ${res.status}`);
     return res.text();
   },
 };
