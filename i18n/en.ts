@@ -68,7 +68,7 @@ const en: TranslationKeys = {
   geminiApiKeys: 'Gemini API Keys',
   usingDefaultKey: 'No key yet — add your Gemini key to start',
   needKeyToStart: 'Add a Gemini API key before recording — tap here to add one.',
-  geminiSetupGuide: 'Get a free key',
+  geminiSetupGuide: 'How to get a free key',
   geminiStep1: 'Open Google AI Studio and sign in with a Google account',
   geminiStep2: 'Click "Create API key" — free, no credit card required',
   geminiStep3: 'Copy the key (starts with "AIza...") and paste it above',
